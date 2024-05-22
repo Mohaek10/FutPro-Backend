@@ -1,0 +1,21 @@
+pip freeze > requirements.txt para guardar las dependencias
+pip install -r requirements.txt para instalar las dependencias
+python manage.py migrate para crear la base de datos
+python manage.py runserver para iniciar el servidor
+python manage.py createsuperuser para crear un superusuario
+python manage.py startapp nombre_app para crear una nueva app
+python manage.py makemigrations para crear un archivo de migración
+python manage.py migrate para aplicar las migraciones
+python manage.py shell para abrir la consola interactiva de Django
+python manage.py collectstatic para recolectar los archivos estáticos
+python manage.py test para correr los tests
+python manage.py help para ver todos los comandos disponibles
+python manage.py help nombre_comando para ver la documentación de un comando en específico
+python manage.py sqlmigrate nombre_app número_migración para ver el SQL de una migración
+python manage.py check para verificar si hay errores en el proyecto
+python manage.py showmigrations para ver todas las migraciones del proyecto
+python manage.py flush para limpiar la base de datos
+python manage.py dumpdata nombre_app para ver los datos de una app
+python manage.py dumpdata nombre_app --format xml -o nombre_archivo.xml para guardar los datos de una app en un archivo XML
+python manage.py dumpdata nombre_app --format json -o nombre_archivo.json para guardar los datos de una app en un archivo JSON
+python manage.py loaddata nombre_archivo para cargar los datos de un archivo
