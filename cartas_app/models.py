@@ -1,4 +1,6 @@
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -63,3 +65,16 @@ class Jugador(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(Jugador, self).save(*args, **kwargs)
+
+
+class Comentario(models.Model):
+    comentario_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    calificacion = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    texto = models.CharField(max_length=200)
+    jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE, related_name='comentarios')
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
+    isActive = models.BooleanField(default=True)
+
+    def __str__(self):
+        return str(self.calificacion) + " - " + self.jugador.nombreCompleto
