@@ -1,9 +1,13 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, generics
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer
-from cartas_app.models import Jugador, Equipo
+from cartas_app.api.permissions import IsAdminorReadOnly, IsComentarioUserOrReadOnly
+from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer, ComentarioSerializer
+from cartas_app.models import Jugador, Equipo, Comentario
 
 
 class JugadorAV(APIView):
@@ -47,5 +51,38 @@ class JugadorDV(APIView):
 
 
 class EquipoAV(viewsets.ModelViewSet):
+    permission_classes = [IsAdminorReadOnly]
     queryset = Equipo.objects.all()
     serializer_class = EquipoSerializer
+
+
+class ComentarioList(generics.ListCreateAPIView):
+    serialize_class = ComentarioSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Comentario.objects.filter(jugador_id=pk)
+
+
+class ComentarioDetalle(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comentario.objects.all()
+    serializer_class = ComentarioSerializer
+    permission_classes = [IsComentarioUserOrReadOnly]
+
+
+class ComentarioCreate(generics.CreateAPIView):
+    serializer_class = ComentarioSerializer
+
+    def perform_create(self, serializer):
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied('Debes estar logueado para comentar')
+        pk = self.kwargs.get('pk')
+        jugador = get_object_or_404(Jugador, pk=pk)
+
+        user = self.request.user
+        comentario_queryset = Comentario.objects.filter(jugador=jugador, comentario_user=user)
+        if comentario_queryset.exists():
+            raise ValidationError('Ya has comentado este jugador')
+
+        serializer.save(comentario_user=user, jugador=jugador)
