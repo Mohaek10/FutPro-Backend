@@ -76,6 +76,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'futpro.wsgi.application'
 
+AUTH_USER_MODEL = 'user_app.Account'
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
