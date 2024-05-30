@@ -9,9 +9,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 @api_view(['POST'])
 def logout_view(request):
-    if request.method == 'POST':
-        request.user.auth_token.delete()
-        return Response(status=status.HTTP_200_OK)
+    # Invalidar el token, para que no pueda ser usado nuevamente
+    try:
+        refresh_token = request.data['refresh']
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response('Sesion cerrada', status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        return Response('Token invalido', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

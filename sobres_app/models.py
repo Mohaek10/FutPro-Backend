@@ -29,6 +29,7 @@ class SobreJugador(models.Model):
     jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    isActive = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.sobre.nombre} - {self.jugador.nombreCompleto}"
