@@ -57,7 +57,7 @@ class EquipoAV(viewsets.ModelViewSet):
 
 
 class ComentarioList(generics.ListCreateAPIView):
-    serialize_class = ComentarioSerializer
+    serializer_class = ComentarioSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

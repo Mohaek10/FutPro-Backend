@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'cartas_app.middleware.JSONErrorMiddleware',
+    # 'cartas_app.middleware.JSONErrorMiddleware',
 ]
 
 ROOT_URLCONF = 'futpro.urls'
