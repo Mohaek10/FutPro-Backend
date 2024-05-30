@@ -1,3 +1,5 @@
+from venv import logger
+
 from django.contrib import auth
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -7,6 +9,8 @@ from rest_framework.authtoken.models import Token
 from user_app.api.serializers import RegistrationSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from user_app.models import Account
+
 
 @api_view(['POST'])
 def login_view(request):
@@ -14,6 +18,12 @@ def login_view(request):
     if request.method == 'POST':
         email = request.data.get('email')
         password = request.data.get('password')
+
+        # Validate input
+        if not email or not password:
+            data['response'] = 'Error de autenticación'
+            data['error_message'] = 'Correo y contraseña son requeridos'
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         account = auth.authenticate(email=email, password=password)
 
@@ -32,12 +42,12 @@ def login_view(request):
             return Response(data, status=status.HTTP_200_OK)
         else:
             data['response'] = 'Error de autenticación'
+            data['error_message'] = 'Credenciales incorrectas'
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 def logout_view(request):
-    # Invalidar el token, para que no pueda ser usado nuevamente
     data = {}
     try:
         refresh_token = request.data['refresh']
@@ -46,7 +56,8 @@ def logout_view(request):
         data['response'] = 'Sesion cerrada'
         return Response(data, status=status.HTTP_200_OK)
     except Exception as e:
-        print(e)
+        # Log the exception
+        logger.error(e)
         data['response'] = ('Token invalido, o no se ha proporcionado el token de refresco, por favor inicie sesion '
                             'nuevamente')
         return Response(data, status=status.HTTP_400_BAD_REQUEST)
