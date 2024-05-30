@@ -4,14 +4,20 @@ from cartas_app.models import Jugador, Comentario, Equipo
 
 
 class ComentarioSerializer(serializers.ModelSerializer):
-    comentario_user = serializers.StringRelatedField(read_only=True)
+    comentario_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comentario
         fields = '__all__'
 
+    def get_comentario_user(self, obj):
+        return obj.comentario_user.username
+
 
 class JugadorSerializer(serializers.ModelSerializer):
+    comentarios = ComentarioSerializer(many=True, read_only=True)
+    equipo_nombre = serializers.CharField(source='equipo.nombre')
+
     class Meta:
         model = Jugador
         fields = '__all__'
