@@ -5,6 +5,8 @@ services:
     image: postgres
     env_file:
       - ./.envs/.postgres
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
   web:
@@ -19,9 +21,9 @@ services:
     depends_on:
       - db
   adminer:
-     image: adminer
-     ports:
-       - "8080:8080"
+    image: adminer
+    ports:
+      - "8080:8080"
 
 volumes:
   pgdata:
