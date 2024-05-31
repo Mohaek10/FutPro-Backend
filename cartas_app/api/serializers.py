@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from cartas_app.models import Jugador, Comentario, Equipo
+from cartas_app.models import Jugador, Comentario, Equipo, JugadorUsuario
+from user_app.models import Account
 
 
 class ComentarioSerializer(serializers.ModelSerializer):
@@ -10,7 +11,8 @@ class ComentarioSerializer(serializers.ModelSerializer):
         model = Comentario
         fields = '__all__'
 
-    def get_comentario_user(self, obj):
+    @staticmethod
+    def get_comentario_user(obj):
         return obj.comentario_user.username
 
 
@@ -72,3 +74,12 @@ class EquipoSerializer(serializers.ModelSerializer):
         return super(EquipoSerializer, self).to_representation(instance)
 
     jugadores = JugadorSerializer(many=True, read_only=True)
+
+
+class JugadorUsuarioSerializer(serializers.ModelSerializer):
+    usuario = serializers.PrimaryKeyRelatedField(queryset=Account.objects.all())
+    jugador = serializers.PrimaryKeyRelatedField(queryset=Jugador.objects.all())
+
+    class Meta:
+        model = JugadorUsuario
+        fields = '__all__'
