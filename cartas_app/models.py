@@ -19,6 +19,10 @@ class Equipo(models.Model):
     def __str__(self):
         return self.nombre
 
+    @staticmethod
+    def activos():
+        return Equipo.objects.filter(isActive=True)
+
 
 class Jugador(models.Model):
     POSICION_CHOICES = [
@@ -50,6 +54,10 @@ class Jugador(models.Model):
 
     def __str__(self):
         return self.nombreCompleto
+
+    @staticmethod
+    def activos():
+        return Jugador.objects.filter(isActive=True)
 
     def clean(self):
         if self.media < 0 or self.media > 100:

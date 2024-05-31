@@ -22,6 +22,12 @@ class JugadorSerializer(serializers.ModelSerializer):
         model = Jugador
         fields = '__all__'
 
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        if not instance.isActive and (not request or not request.user.is_staff):
+            return None
+        return super(JugadorSerializer, self).to_representation(instance)
+
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
 
@@ -58,5 +64,11 @@ class EquipoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Equipo
         fields = '__all__'
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        if not instance.isActive and (not request or not request.user.is_staff):
+            return None
+        return super(EquipoSerializer, self).to_representation(instance)
 
     jugadores = JugadorSerializer(many=True, read_only=True)
