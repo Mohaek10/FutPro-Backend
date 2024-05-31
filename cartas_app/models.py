@@ -87,3 +87,17 @@ class Comentario(models.Model):
 
     def __str__(self):
         return str(self.calificacion) + " - " + self.jugador.nombreCompleto
+
+
+# Modelo intermedio para la relación muchos a muchos entre Jugador y Account
+class JugadorUsuario(models.Model):
+    usuario = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='jugadores')
+    jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE, related_name='usuarios')
+    cantidad = models.PositiveIntegerField(default=1)
+    fecha_adquisicion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'jugador')
+
+    def __str__(self):
+        return f"{self.usuario.username} posee {self.cantidad} de {self.jugador.nombreCompleto}"
