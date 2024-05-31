@@ -16,11 +16,14 @@ class ComentarioSerializer(serializers.ModelSerializer):
 
 class JugadorSerializer(serializers.ModelSerializer):
     comentarios = ComentarioSerializer(many=True, read_only=True)
-    equipo_nombre = serializers.CharField(source='equipo.nombre')
+    nombre_equipo = serializers.SerializerMethodField()
 
     class Meta:
         model = Jugador
         fields = '__all__'
+
+    def get_nombre_equipo(self, obj):
+        return obj.equipo.nombre
 
     def validate_edad(self, value):
         if value < 0 or value > 100:
