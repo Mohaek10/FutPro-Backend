@@ -1,11 +1,7 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-
-from ventas_app.api.views import JugadorUsuarioViewSet
-
-router = DefaultRouter()
-router.register(r'jugadorusuario', JugadorUsuarioViewSet)
+from django.urls import path
+from ventas_app.api.views import ComprarJugador, VenderJugador
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('comprar/', ComprarJugador.as_view(), name='comprar-jugador'),
+    path('vender/', VenderJugador.as_view(), name='vender-jugador'),
 ]
