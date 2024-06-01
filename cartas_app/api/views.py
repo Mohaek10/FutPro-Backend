@@ -69,7 +69,7 @@ class JugadorDV(APIView):
 
 
 class EquipoAV(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminorReadOnly]
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.is_staff:
