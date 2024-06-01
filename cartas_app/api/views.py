@@ -1,3 +1,5 @@
+from venv import logger
+
 from rest_framework import status, viewsets, generics
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
@@ -18,7 +20,7 @@ class JugadorAV(APIView):
             jugadores = Jugador.objects.all()  # Admins can see all players
         else:
             jugadores = Jugador.activos()  # Non-admins can see only active players
-        serializer = JugadorSerializer(jugadores, many=True)
+        serializer = JugadorSerializer(jugadores, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
@@ -39,16 +41,17 @@ class JugadorDV(APIView):
         return get_object_or_404(Jugador, pk=pk)
 
     def get(self, request, pk):
+        logger.info(f'User {request.user} viewed player {pk}')
         jugador = self.get_object(pk)
         if not jugador.isActive and not request.user.is_staff:
             return Response({'error': 'Jugador no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = JugadorSerializer(jugador)
+        serializer = JugadorSerializer(jugador, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request, pk):
         if not request.user.is_authenticated or not request.user.is_staff:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
-
+        logger.info(f'User {request.user} updated player {pk}')
         jugador = self.get_object(pk)
         serializer = JugadorSerializer(jugador, data=request.data)
         if serializer.is_valid():
@@ -59,7 +62,7 @@ class JugadorDV(APIView):
     def delete(self, request, pk):
         if not request.user.is_authenticated or not request.user.is_staff:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
-
+        logger.info(f'User {request.user} deleted player {pk}')
         jugador = self.get_object(pk)
         jugador.isActive = False
         jugador.save()
