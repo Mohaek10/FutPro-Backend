@@ -8,7 +8,6 @@ from ventas_app.models import Venta
 from ventas_app.api.serializers import CompraSerializer, VentaSerializer
 
 
-# ventas_app/api/views.py
 class ComprarJugador(generics.CreateAPIView):
     serializer_class = CompraSerializer
     permission_classes = [IsAuthenticated]
@@ -34,7 +33,6 @@ class ComprarJugador(generics.CreateAPIView):
             serializer.save(usuario=usuario, cantidad=cantidad)
 
 
-# ventas_app/api/views.py
 class VenderJugador(generics.CreateAPIView):
     serializer_class = VentaSerializer
     permission_classes = [IsAuthenticated]

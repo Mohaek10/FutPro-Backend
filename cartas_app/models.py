@@ -50,6 +50,7 @@ class Jugador(models.Model):
     posicion = models.CharField(max_length=3, choices=POSICION_CHOICES)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    en_mercado = models.BooleanField(default=True)
     isActive = models.BooleanField(default=True)
 
     def __str__(self):
