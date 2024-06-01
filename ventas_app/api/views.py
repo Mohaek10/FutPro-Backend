@@ -15,7 +15,7 @@ class MercadoSistemaList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Jugador.objects.filter(en_mercado_sistema=True, isActive=True)
+        return Jugador.objects.filter(en_mercado=True, isActive=True)
 
 
 class ComprarMercadoSistema(APIView):
@@ -30,7 +30,7 @@ class ComprarMercadoSistema(APIView):
             usuario = request.user
 
             # Verificar que el jugador existe y está en el mercado
-            jugador = get_object_or_404(Jugador, id=jugador_id, en_mercado_sistema=True, isActive=True)
+            jugador = get_object_or_404(Jugador, id=jugador_id, en_mercado=True, isActive=True)
 
             # Validar que el usuario tenga suficientes FutCoins
             costo_total = jugador.valor * cantidad
