@@ -1,7 +1,13 @@
+import logging
+
 from rest_framework import serializers
 
 from cartas_app.models import Jugador, Comentario, Equipo, JugadorUsuario
 from user_app.models import Account
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 class ComentarioSerializer(serializers.ModelSerializer):
@@ -26,6 +32,7 @@ class JugadorSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
+        logger.info(f"User {request.user} viewed player {instance.pk} en el serializer.")
         if not instance.isActive and (not request or not request.user.is_staff):
             return None
         return super(JugadorSerializer, self).to_representation(instance)
