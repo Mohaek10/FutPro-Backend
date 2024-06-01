@@ -23,20 +23,23 @@ class ComprarMercadoSistema(APIView):
 
     def post(self, request):
         serializer = CompraSistemaSerializer(data=request.data)
+
         if serializer.is_valid():
             jugador_id = serializer.validated_data.get('jugador_id')
             cantidad = serializer.validated_data.get('cantidad')
             usuario = request.user
             jugador = get_object_or_404(Jugador, id=jugador_id, en_mercado_sistema=True, isActive=True)
 
+            # Validar que el usuario tenga suficientes FutCoins
             costo_total = jugador.valor * cantidad
             if usuario.futcoins < costo_total:
                 return Response({'error': 'No tienes suficientes futcoins para comprar este jugador.'},
                                 status=status.HTTP_400_BAD_REQUEST)
-
+            # Descontar los FutCoins del usuario
             usuario.futcoins -= costo_total
             usuario.save()
 
+            # Crear la entrada de jugador_usuario
             jugador_usuario, created = JugadorUsuario.objects.get_or_create(usuario=usuario, jugador=jugador)
             if not created:
                 jugador_usuario.cantidad += cantidad
@@ -57,9 +60,6 @@ class PonerEnVentaUsuario(generics.CreateAPIView):
         jugador_usuario = serializer.validated_data.get('jugador_usuario')
         precio = serializer.validated_data.get('precio')
         vendedor = self.request.user
-
-        if jugador_usuario.usuario != vendedor:
-            raise ValidationError("No puedes vender un jugador que no posees.")
 
         # Crear la entrada de venta
         serializer.save(vendedor=vendedor, jugador_usuario=jugador_usuario)

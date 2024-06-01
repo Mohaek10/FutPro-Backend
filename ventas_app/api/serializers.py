@@ -8,6 +8,12 @@ class VentaUsuarioSerializer(serializers.ModelSerializer):
         model = VentaUsuario
         fields = ['id', 'vendedor', 'jugador_usuario', 'precio', 'fecha', 'isActive']
 
+    def validate_jugador_usuario(self, value):
+        request = self.context.get('request')
+        if value.usuario != request.user:
+            raise serializers.ValidationError("No puedes vender un jugador que no posees.")
+        return value
+
 
 class MercadoSistemaSerializer(serializers.ModelSerializer):
     nombre_equipo = serializers.SerializerMethodField()
