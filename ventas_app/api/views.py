@@ -15,7 +15,7 @@ class MercadoSistemaList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Jugador.objects.filter(en_mercado=True, isActive=True)
+        return Jugador.objects.filter(en_mercado_sistema=True, isActive=True)
 
 
 class ComprarMercadoSistema(APIView):
@@ -28,18 +28,21 @@ class ComprarMercadoSistema(APIView):
             jugador_id = serializer.validated_data.get('jugador_id')
             cantidad = serializer.validated_data.get('cantidad')
             usuario = request.user
+
+            # Verificar que el jugador existe y está en el mercado
             jugador = get_object_or_404(Jugador, id=jugador_id, en_mercado_sistema=True, isActive=True)
 
             # Validar que el usuario tenga suficientes FutCoins
             costo_total = jugador.valor * cantidad
             if usuario.futcoins < costo_total:
-                return Response({'error': 'No tienes suficientes futcoins para comprar este jugador.'},
+                return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
             # Descontar los FutCoins del usuario
             usuario.futcoins -= costo_total
             usuario.save()
 
-            # Crear la entrada de jugador_usuario
+            # Crear la entrada de jugador_usuario o actualizar la cantidad si ya existe
             jugador_usuario, created = JugadorUsuario.objects.get_or_create(usuario=usuario, jugador=jugador)
             if not created:
                 jugador_usuario.cantidad += cantidad
@@ -60,6 +63,10 @@ class PonerEnVentaUsuario(generics.CreateAPIView):
         jugador_usuario = serializer.validated_data.get('jugador_usuario')
         precio = serializer.validated_data.get('precio')
         vendedor = self.request.user
+
+        # Verificar que el jugador_usuario pertenece al vendedor
+        if jugador_usuario.usuario != vendedor:
+            raise ValidationError("No puedes vender un jugador que no posees.")
 
         # Crear la entrada de venta
         serializer.save(vendedor=vendedor, jugador_usuario=jugador_usuario)
@@ -87,6 +94,10 @@ class ComprarJugadorUsuario(APIView):
         vendedor = venta.vendedor
         jugador_usuario = venta.jugador_usuario
 
+        # Verificar que el jugador está disponible
+        if jugador_usuario.cantidad < 1:
+            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
+
         # Transferir FutCoins
         comprador.futcoins -= venta.precio
         comprador.save()
@@ -95,9 +106,6 @@ class ComprarJugadorUsuario(APIView):
         vendedor.save()
 
         # Transferir la propiedad del jugador
-        if jugador_usuario.cantidad < 1:
-            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
-
         jugador_usuario.usuario = comprador
         jugador_usuario.save()
 
