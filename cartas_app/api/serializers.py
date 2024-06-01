@@ -30,13 +30,6 @@ class JugadorSerializer(serializers.ModelSerializer):
         model = Jugador
         fields = '__all__'
 
-    def to_representation(self, instance):
-        request = self.context.get('request')
-        logger.info(f"User {request.user} viewed player {instance.pk} en el serializer.")
-        if not instance.isActive and (not request or not request.user.is_staff):
-            return None
-        return super(JugadorSerializer, self).to_representation(instance)
-
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
 

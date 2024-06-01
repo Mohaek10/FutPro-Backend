@@ -1,7 +1,7 @@
 from venv import logger
 
 from rest_framework import status, viewsets, generics
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
@@ -41,10 +41,9 @@ class JugadorDV(APIView):
         return get_object_or_404(Jugador, pk=pk)
 
     def get(self, request, pk):
-        logger.info(f'User {request.user} viewed player {pk}')
         jugador = self.get_object(pk)
         if not jugador.isActive and not request.user.is_staff:
-            return Response({'error': 'Jugador no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail="No Jugador matches the given query.")  # Forzar la misma excepción
         serializer = JugadorSerializer(jugador, context={'request': request})
         return Response(serializer.data)
 
