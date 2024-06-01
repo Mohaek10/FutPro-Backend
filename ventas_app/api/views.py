@@ -6,9 +6,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from cartas_app.models import Jugador, JugadorUsuario
-from ventas_app.models import Venta
-from ventas_app.api.serializers import CompraSerializer, VentaSerializer, MercadoSistemaSerializer, \
-    CompraSistemaSerializer
+from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer
+from ventas_app.models import VentaUsuario
 
 
 class MercadoSistemaList(generics.ListAPIView):
@@ -50,8 +49,8 @@ class ComprarMercadoSistema(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class VenderJugador(generics.CreateAPIView):
-    serializer_class = VentaSerializer
+class PonerEnVentaUsuario(generics.CreateAPIView):
+    serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -62,28 +61,48 @@ class VenderJugador(generics.CreateAPIView):
         if jugador_usuario.usuario != vendedor:
             raise ValidationError("No puedes vender un jugador que no posees.")
 
-        if jugador_usuario.cantidad < 1:
-            raise ValidationError("No tienes suficientes jugadores para vender.")
+        # Crear la entrada de venta
+        serializer.save(vendedor=vendedor, jugador_usuario=jugador_usuario)
 
-        comprador = serializer.validated_data.get('comprador')
-        if vendedor == comprador:
-            raise ValidationError("No puedes comprarte a ti mismo.")
 
-        if comprador.futcoins < precio:
-            raise ValidationError("El comprador no tiene suficientes futcoins.")
+class MercadoUsuariosList(generics.ListAPIView):
+    serializer_class = VentaUsuarioSerializer
+    permission_classes = [IsAuthenticated]
 
-        # Realizar la transacción
-        comprador.futcoins -= precio
+    def get_queryset(self):
+        return VentaUsuario.objects.filter(isActive=True)
+
+
+class ComprarJugadorUsuario(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, venta_id):
+        venta = get_object_or_404(VentaUsuario, id=venta_id, isActive=True)
+        comprador = self.request.user
+
+        if comprador.futcoins < venta.precio:
+            return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        vendedor = venta.vendedor
+        jugador_usuario = venta.jugador_usuario
+
+        # Transferir FutCoins
+        comprador.futcoins -= venta.precio
         comprador.save()
 
-        vendedor.futcoins += precio
+        vendedor.futcoins += venta.precio
         vendedor.save()
 
-        jugador_usuario.cantidad -= 1
-        if jugador_usuario.cantidad == 0:
-            jugador_usuario.delete()
-        else:
-            jugador_usuario.save()
+        # Transferir la propiedad del jugador
+        if jugador_usuario.cantidad < 1:
+            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Registrar la venta
-        Venta.objects.create(vendedor=vendedor, comprador=comprador, jugador_usuario=jugador_usuario, precio=precio)
+        jugador_usuario.usuario = comprador
+        jugador_usuario.save()
+
+        # Marcar la venta como inactiva
+        venta.isActive = False
+        venta.save()
+
+        return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)

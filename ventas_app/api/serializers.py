@@ -1,18 +1,12 @@
 from rest_framework import serializers
 from cartas_app.models import JugadorUsuario, Jugador
-from ventas_app.models import Venta
+from ventas_app.models import VentaUsuario
 
 
-class CompraSerializer(serializers.ModelSerializer):
+class VentaUsuarioSerializer(serializers.ModelSerializer):
     class Meta:
-        model = JugadorUsuario
-        fields = ['jugador', 'cantidad']
-
-
-class VentaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Venta
-        fields = ['jugador_usuario', 'precio']
+        model = VentaUsuario
+        fields = ['id', 'vendedor', 'jugador_usuario', 'precio', 'fecha', 'isActive']
 
 
 class MercadoSistemaSerializer(serializers.ModelSerializer):
