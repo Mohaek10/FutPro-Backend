@@ -34,6 +34,7 @@ def login_view(request):
             data['first_name'] = account.first_name
             data['last_name'] = account.last_name
             data['phone_number'] = account.phone_number
+            data['futcoins'] = account.futcoins
             refresh = RefreshToken.for_user(account)
             data['token'] = {
                 'refresh': str(refresh),
@@ -76,6 +77,7 @@ def register(request):
             data['first_name'] = account.first_name
             data['last_name'] = account.last_name
             data['phone_number'] = account.phone_number
+            data['futcoins'] = account.futcoins
             refresh = RefreshToken.for_user(account)
             data['token'] = {
                 'refresh': str(refresh),
