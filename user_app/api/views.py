@@ -1,11 +1,15 @@
 from venv import logger
 
 from django.contrib import auth
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 # from user_app import models
 from rest_framework.authtoken.models import Token
+
+from cartas_app.api.serializers import JugadorUsuarioSerializer
+from cartas_app.models import JugadorUsuario
 from user_app.api.serializers import RegistrationSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -85,3 +89,12 @@ def register(request):
             }
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Ver mis jugadores
+class JugadoresUsuarioList(generics.ListAPIView):
+    serializer_class = JugadorUsuarioSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return JugadorUsuario.objects.filter(usuario=self.request.user)

@@ -69,6 +69,7 @@ class MercadoUsuariosList(generics.ListAPIView):
         return VentaUsuario.objects.filter(isActive=True)
 
 
+# Vista para poner un jugador en venta
 class PonerEnVentaUsuario(generics.CreateAPIView):
     serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]

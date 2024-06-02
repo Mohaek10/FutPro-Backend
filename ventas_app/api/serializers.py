@@ -1,18 +1,6 @@
 from rest_framework import serializers
-from cartas_app.models import JugadorUsuario, Jugador
+from cartas_app.models import Jugador
 from ventas_app.models import VentaUsuario
-
-
-class VentaUsuarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VentaUsuario
-        fields = ['id', 'vendedor', 'jugador_usuario', 'precio', 'fecha', 'isActive']
-
-    def validate_jugador_usuario(self, value):
-        request = self.context.get('request')
-        if value.usuario != request.user:
-            raise serializers.ValidationError("No puedes vender un jugador que no posees.")
-        return value
 
 
 class MercadoSistemaSerializer(serializers.ModelSerializer):
@@ -43,4 +31,18 @@ class CompraSistemaSerializer(serializers.Serializer):
     def validate_cantidad(self, value):
         if value < 1:
             raise serializers.ValidationError("La cantidad debe ser mayor a 0.")
+        return value
+
+
+class VentaUsuarioSerializer(serializers.ModelSerializer):
+    vendedor = serializers.ReadOnlyField(source='vendedor.username')
+
+    class Meta:
+        model = VentaUsuario
+        fields = ['id', 'vendedor', 'jugador_usuario', 'precio', 'fecha', 'isActive']
+
+    def validate_jugador_usuario(self, value):
+        request = self.context.get('request')
+        if value.usuario != request.user:
+            raise serializers.ValidationError("No puedes vender un jugador que no posees.")
         return value
