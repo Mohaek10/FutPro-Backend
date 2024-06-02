@@ -21,7 +21,7 @@ class MercadoSistemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Jugador
         fields = ['id', 'nombreCompleto', 'edad', 'media', 'rareza', 'imagen', 'valor', 'posicion', 'en_mercado',
-                  'nombre_equipo']
+                  'nombre_equipo', 'updatedAt']
 
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
