@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from user_app.models import Account
+from user_app.models import Account, LoteFutCoins, CompraFutCoins
 
 
 # Clase para serializar el modelo de usuario de Django, que comprueba que el password y el password2 sean iguales,
@@ -35,3 +35,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
         account.save()
         return account
+
+
+class LoteFutCoinsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoteFutCoins
+        fields = ['id', 'nombre', 'cantidad', 'precio']
+
+
+class CompraFutCoinsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompraFutCoins
+        fields = ['id', 'usuario', 'lote', 'numero_tarjeta', 'fecha_expiracion', 'cvv', 'fecha']
+        extra_kwargs = {
+            'usuario': {'read_only': True},
+            'fecha': {'read_only': True}
+        }

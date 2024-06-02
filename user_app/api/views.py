@@ -3,17 +3,19 @@ from venv import logger
 from django.contrib import auth
 from rest_framework import status, generics
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 # from user_app import models
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 
 from cartas_app.api.serializers import JugadorUsuarioSerializer
 from cartas_app.models import JugadorUsuario
-from user_app.api.serializers import RegistrationSerializer
+from user_app.api.serializers import RegistrationSerializer, CompraFutCoinsSerializer, LoteFutCoinsSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from user_app.models import Account
+from user_app.models import Account, CompraFutCoins, LoteFutCoins
 
 
 @api_view(['POST'])
@@ -98,3 +100,53 @@ class JugadoresUsuarioList(generics.ListAPIView):
 
     def get_queryset(self):
         return JugadorUsuario.objects.filter(usuario=self.request.user)
+
+
+class LotesFutCoinsList(generics.ListAPIView):
+    serializer_class = LoteFutCoinsSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return LoteFutCoins.objects.all()
+
+
+class ComprarFutCoins(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = CompraFutCoinsSerializer(data=request.data)
+        if serializer.is_valid():
+            lote_id = serializer.validated_data.get('lote').id
+            numero_tarjeta = serializer.validated_data.get('numero_tarjeta')
+            fecha_expiracion = serializer.validated_data.get('fecha_expiracion')
+            cvv = serializer.validated_data.get('cvv')
+
+            # Aquí puedes agregar la lógica para procesar el pago con el número de tarjeta
+            # Por simplicidad, asumimos que el pago es exitoso
+
+            usuario = request.user
+            lote = get_object_or_404(LoteFutCoins, id=lote_id)
+
+            # Incrementar FutCoins del usuario
+            usuario.futcoins += lote.cantidad
+            usuario.save()
+
+            # Registrar la compra de FutCoins
+            CompraFutCoins.objects.create(
+                usuario=usuario,
+                lote=lote,
+                numero_tarjeta=numero_tarjeta,
+                fecha_expiracion=fecha_expiracion,
+                cvv=cvv
+            )
+
+            data = {
+                'success': 'FutCoins compradas exitosamente.',
+                'futcoins': usuario.futcoins,
+                'lote': lote.nombre,
+                'cantidad': lote.cantidad,
+                'precio': lote.precio
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
