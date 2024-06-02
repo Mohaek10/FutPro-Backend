@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
@@ -12,7 +12,7 @@ from ventas_app.models import VentaUsuario
 
 class MercadoSistemaList(generics.ListAPIView):
     serializer_class = MercadoSistemaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Jugador.objects.filter(en_mercado=True, isActive=True)
