@@ -13,7 +13,7 @@ from cartas_app.models import Jugador, Equipo, Comentario
 
 
 class JugadorAV(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminorReadOnly]
 
     def get(self, request):
         if request.user.is_staff:
@@ -35,7 +35,7 @@ class JugadorAV(APIView):
 
 
 class JugadorDV(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminorReadOnly]
 
     def get_object(self, pk):
         return get_object_or_404(Jugador, pk=pk)
