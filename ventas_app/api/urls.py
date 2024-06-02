@@ -1,6 +1,6 @@
 from django.urls import path
 from ventas_app.api.views import PonerEnVentaUsuario, MercadoUsuariosList, ComprarJugadorUsuario, MercadoSistemaList, \
-    ComprarMercadoSistema, EliminarJugadorDelMercado
+    ComprarMercadoSistema, EliminarJugadorDelMercado, TransaccionesUsuarioList, TransaccionesAdminList
 
 urlpatterns = [
     # path del mercado del sistema
@@ -12,4 +12,7 @@ urlpatterns = [
     path('mercado-usuarios/', MercadoUsuariosList.as_view(), name='mercado-usuarios'),
     path('comprar-usuario/<int:venta_id>/', ComprarJugadorUsuario.as_view(), name='comprar-jugador-usuario'),
     path('eliminar-venta/<int:venta_id>/', EliminarJugadorDelMercado.as_view(), name='eliminar-venta-usuario'),
+
+    path('transacciones-usuario/', TransaccionesUsuarioList.as_view(), name='transacciones-usuario'),
+    path('transacciones-admin/', TransaccionesAdminList.as_view(), name='transacciones-admin')
 ]
