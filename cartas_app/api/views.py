@@ -8,8 +8,10 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, I
 from django.shortcuts import get_object_or_404
 
 from cartas_app.api.permissions import IsAdminorReadOnly, IsComentarioUserOrReadOnly
-from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer, ComentarioSerializer
-from cartas_app.models import Jugador, Equipo, Comentario
+from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer, ComentarioSerializer, \
+    JugadorUsuarioSerializer
+from cartas_app.models import Jugador, Equipo, Comentario, JugadorUsuario
+from user_app.models import Account
 
 
 class JugadorAV(APIView):
@@ -118,3 +120,13 @@ class ComentarioCreate(generics.CreateAPIView):
             raise ValidationError('Ya has comentado este jugador')
 
         serializer.save(comentario_user=user, jugador=jugador)
+
+
+class JugadorUsuarioView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+        usuario = get_object_or_404(Account, username=username)
+        jugador_usuario = JugadorUsuario.objects.filter(usuario=usuario)
+        serializer = JugadorUsuarioSerializer(jugador_usuario, many=True)
+        return Response(serializer.data)

@@ -40,6 +40,12 @@ class Jugador(models.Model):
         ('CAI', 'Carrilero Izquierdo'),
         ('PT', 'Portero'),
     ]
+    RAREZA_CHOICES = [
+        ('Común', 'Común'),
+        ('Rara', 'Rara'),
+        ('Épica', 'Épica'),
+        ('Legendaria', 'Legendaria'),
+    ]  # Rareza de las cartas
     nombreCompleto = models.CharField(max_length=250)
     edad = models.IntegerField()
     equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE, related_name='jugadores')
