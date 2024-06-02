@@ -36,7 +36,9 @@ class ComprarMercadoSistema(APIView):
             # Validar que el usuario tenga suficientes FutCoins
             costo_total = jugador.valor * cantidad
             if usuario.futcoins < costo_total:
-                return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.'},
+                return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.',
+                                 'futcoins': usuario.futcoins,
+                                 'precioTotal': costo_total, },
                                 status=status.HTTP_400_BAD_REQUEST)
 
             # Crear la entrada de jugador_usuario o actualizar la cantidad si ya existe
@@ -52,7 +54,8 @@ class ComprarMercadoSistema(APIView):
             usuario.save()
             data = {'success': 'Jugador comprado exitosamente.',
                     'futcoins': usuario.futcoins,
-                    'jugador': jugador.nombreCompleto}
+                    'jugador': jugador.nombreCompleto,
+                    'precioTotal': costo_total, }
             return Response(data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
