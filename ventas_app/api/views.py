@@ -111,8 +111,20 @@ class ComprarJugadorUsuario(APIView):
     def post(self, request, venta_id):
         venta = get_object_or_404(VentaUsuario, id=venta_id, isActive=True)
         comprador = self.request.user
+        cantidad_a_comprar = request.data.get('cantidad', 1)
 
-        if comprador.futcoins < venta.precio:
+        if cantidad_a_comprar < 1:
+            return Response({'error': 'La cantidad debe ser mayor a 0.'}, status=status.HTTP_400_BAD_REQUEST)
+        if cantidad_a_comprar > venta.cantidad:
+            return Response({'error': 'No puedes comprar más jugadores de los que están en venta.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar que el comprador no sea el vendedor
+        if venta.vendedor == comprador:
+            return Response({'error': 'No puedes comprar tu propio jugador.'}, status=status.HTTP_400_BAD_REQUEST)
+        costo_total = venta.precio * cantidad_a_comprar
+
+        if comprador.futcoins < costo_total:
             return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -120,22 +132,37 @@ class ComprarJugadorUsuario(APIView):
         jugador_usuario = venta.jugador_usuario
 
         # Verificar que el jugador está disponible
-        if jugador_usuario.cantidad < 1:
+        if jugador_usuario.cantidad < cantidad_a_comprar:
             return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Transferir FutCoins
-        comprador.futcoins -= venta.precio
+        comprador.futcoins -= costo_total
         comprador.save()
 
-        vendedor.futcoins += venta.precio
+        vendedor.futcoins += costo_total
         vendedor.save()
 
-        # Transferir la propiedad del jugador
-        jugador_usuario.usuario = comprador
-        jugador_usuario.save()
+        # Actualizar la cantidad del jugador en el vendedor
+        jugador_usuario.cantidad -= cantidad_a_comprar
+        if jugador_usuario.cantidad == 0:
+            jugador_usuario.delete()
+        else:
+            jugador_usuario.save()
 
-        # Marcar la venta como inactiva
-        venta.isActive = False
+        # Crear o actualizar la entrada del comprador en JugadorUsuario
+        jugador_comprador, created = JugadorUsuario.objects.get_or_create(usuario=comprador,
+                                                                          jugador=jugador_usuario.jugador)
+        if created:
+            jugador_comprador.cantidad = cantidad_a_comprar
+        else:
+            jugador_comprador.cantidad += cantidad_a_comprar
+        jugador_comprador.save()
+
+        # Marcar la venta como inactiva si todas las cartas han sido vendidas
+        if venta.cantidad == cantidad_a_comprar:
+            venta.isActive = False
+        else:
+            venta.cantidad -= cantidad_a_comprar
         venta.save()
 
         # Registrar la transacción
@@ -143,10 +170,17 @@ class ComprarJugadorUsuario(APIView):
             comprador=comprador,
             vendedor=vendedor,
             jugador=jugador_usuario.jugador,
-            precio=venta.precio
+            cantidad=cantidad_a_comprar,
+            precio=costo_total
         )
+        data = {
+            'success': 'Jugador comprado exitosamente.',
+            'jugador': jugador_usuario.jugador.nombreCompleto,
+            'precioTotal': costo_total,
+            'futcoins': comprador.futcoins
+        }
 
-        return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class EliminarJugadorDelMercado(APIView):
