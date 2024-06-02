@@ -10,6 +10,7 @@ from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSe
 from ventas_app.models import VentaUsuario
 
 
+# Vista para ver los jugadores en el mercado del sistema, que tienen en_mercado=True
 class MercadoSistemaList(generics.ListAPIView):
     serializer_class = MercadoSistemaSerializer
     permission_classes = [AllowAny]
@@ -38,10 +39,6 @@ class ComprarMercadoSistema(APIView):
                 return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # Descontar los FutCoins del usuario
-            usuario.futcoins -= costo_total
-            usuario.save()
-
             # Crear la entrada de jugador_usuario o actualizar la cantidad si ya existe
             jugador_usuario, created = JugadorUsuario.objects.get_or_create(usuario=usuario, jugador=jugador)
             if not created:
@@ -50,9 +47,20 @@ class ComprarMercadoSistema(APIView):
             else:
                 serializer.save(usuario=usuario, cantidad=cantidad)
 
+            # Descontar los FutCoins del usuario
+            usuario.futcoins -= costo_total
+            usuario.save()
             return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MercadoUsuariosList(generics.ListAPIView):
+    serializer_class = VentaUsuarioSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return VentaUsuario.objects.filter(isActive=True)
 
 
 class PonerEnVentaUsuario(generics.CreateAPIView):
@@ -70,14 +78,6 @@ class PonerEnVentaUsuario(generics.CreateAPIView):
 
         # Crear la entrada de venta
         serializer.save(vendedor=vendedor, jugador_usuario=jugador_usuario)
-
-
-class MercadoUsuariosList(generics.ListAPIView):
-    serializer_class = VentaUsuarioSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return VentaUsuario.objects.filter(isActive=True)
 
 
 class ComprarJugadorUsuario(APIView):

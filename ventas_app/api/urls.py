@@ -1,9 +1,11 @@
 from django.urls import path
-from ventas_app.api.views import PonerEnVentaUsuario, MercadoUsuariosList, ComprarJugadorUsuario, MercadoSistemaList
+from ventas_app.api.views import PonerEnVentaUsuario, MercadoUsuariosList, ComprarJugadorUsuario, MercadoSistemaList, \
+    ComprarMercadoSistema
 
 urlpatterns = [
     # path del mercado del sistema
     path('mercado-sistema/', MercadoSistemaList.as_view(), name='mercado-sistema'),
+    path('comprar-sistema/', ComprarMercadoSistema.as_view(), name='comprar-sistema'),
 
     path('poner-en-venta/', PonerEnVentaUsuario.as_view(), name='poner-en-venta-usuario'),
     path('mercado-usuarios/', MercadoUsuariosList.as_view(), name='mercado-usuarios'),
