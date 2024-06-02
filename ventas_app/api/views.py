@@ -141,11 +141,6 @@ class EliminarJugadorDelMercado(APIView):
             return Response({'error': 'No tienes permiso para eliminar esta venta.'},
                             status=status.HTTP_403_FORBIDDEN)
 
-        # Incrementar la cantidad del jugador en la relación JugadorUsuario
-        jugador_usuario = venta.jugador_usuario
-        jugador_usuario.cantidad += 1
-        jugador_usuario.save()
-
         # Marcar la venta como inactiva
         venta.isActive = False
         venta.save()
