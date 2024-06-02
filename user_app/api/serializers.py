@@ -16,6 +16,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError('La contraseña debe tener al menos 8 caracteres')
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError('La contraseña debe tener al menos un número')
+        return value
+
     def save(self):
         password = self.validated_data['password']
         password2 = self.validated_data['password2']
@@ -51,3 +58,18 @@ class CompraFutCoinsSerializer(serializers.ModelSerializer):
             'usuario': {'read_only': True},
             'fecha': {'read_only': True}
         }
+
+    def validate_numero_tarjeta(self, value):
+        if len(value) != 16:
+            raise serializers.ValidationError('El número de tarjeta debe tener 16 dígitos')
+        return value
+
+    def validate_fecha_expiracion(self, value):
+        if len(value) != 5:
+            raise serializers.ValidationError('La fecha de expiración debe tener el formato MM/YY')
+        return value
+
+    def validate_cvv(self, value):
+        if not value.isdigit() or len(value) != 3:
+            raise serializers.ValidationError('El CVV debe tener 3 dígitos')
+        return value
