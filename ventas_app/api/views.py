@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from cartas_app.models import Jugador, JugadorUsuario
-from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer
+from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer, \
+    TransaccionSerializer
 from ventas_app.models import VentaUsuario, Transaccion
 
 
@@ -165,3 +166,20 @@ class EliminarJugadorDelMercado(APIView):
         venta.save()
 
         return Response({'success': 'Venta eliminada exitosamente.'}, status=status.HTTP_200_OK)
+
+
+class TransaccionesUsuarioList(generics.ListAPIView):
+    serializer_class = TransaccionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaccion.objects.filter(comprador=self.request.user) | Transaccion.objects.filter(
+            vendedor=self.request.user)
+
+
+class TransaccionesAdminList(generics.ListAPIView):
+    serializer_class = TransaccionSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return Transaccion.objects.all()
