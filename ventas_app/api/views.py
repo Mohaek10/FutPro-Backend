@@ -41,16 +41,19 @@ class ComprarMercadoSistema(APIView):
 
             # Crear la entrada de jugador_usuario o actualizar la cantidad si ya existe
             jugador_usuario, created = JugadorUsuario.objects.get_or_create(usuario=usuario, jugador=jugador)
-            if not created:
-                jugador_usuario.cantidad += cantidad
-                jugador_usuario.save()
+            if created:
+                jugador_usuario.cantidad = cantidad  # Establecer la cantidad si es la primera vez que se añade
             else:
-                serializer.save(usuario=usuario, cantidad=cantidad)
+                jugador_usuario.cantidad += cantidad  # Incrementar la cantidad si ya existe
+            jugador_usuario.save()
 
             # Descontar los FutCoins del usuario
             usuario.futcoins -= costo_total
             usuario.save()
-            return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)
+            data = {'success': 'Jugador comprado exitosamente.',
+                    'futcoins': usuario.futcoins,
+                    'jugador': jugador.nombreCompleto}
+            return Response(data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
