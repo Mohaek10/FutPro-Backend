@@ -1,9 +1,12 @@
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from user_app.api.views import register, logout_view, login_view, JugadoresUsuarioList, LotesFutCoinsList, \
     ComprarFutCoins
 
+router = DefaultRouter()
+router.register('lotes-futcoins', LotesFutCoinsList, basename='lotes-futcoins')
 urlpatterns = [
     # path('login/', obtain_auth_token, name='login'),
     path('login/', login_view, name='login'),
@@ -16,6 +19,7 @@ urlpatterns = [
 
     path('mis-jugadores/', JugadoresUsuarioList.as_view(), name='mis-jugadores'),
 
-    path('lotes-futcoins/', LotesFutCoinsList.as_view(), name='lotes-futcoins'),
-    path('comprar-futcoins/', ComprarFutCoins.as_view(), name='comprar-futcoins')
+    path('comprar-futcoins/', ComprarFutCoins.as_view(), name='comprar-futcoins'),
+    path('', include(router.urls)),
+
 ]

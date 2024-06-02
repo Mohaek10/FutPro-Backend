@@ -1,7 +1,7 @@
 from venv import logger
 
 from django.contrib import auth
-from rest_framework import status, generics
+from rest_framework import status, generics, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 
+from user_app.api.permissions import IsAdminorReadOnly
 from cartas_app.api.serializers import JugadorUsuarioSerializer
 from cartas_app.models import JugadorUsuario
 from user_app.api.serializers import RegistrationSerializer, CompraFutCoinsSerializer, LoteFutCoinsSerializer
@@ -102,12 +103,10 @@ class JugadoresUsuarioList(generics.ListAPIView):
         return JugadorUsuario.objects.filter(usuario=self.request.user)
 
 
-class LotesFutCoinsList(generics.ListAPIView):
+class LotesFutCoinsList(viewsets.ModelViewSet):
+    permission_classes = [IsAdminorReadOnly]
     serializer_class = LoteFutCoinsSerializer
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        return LoteFutCoins.objects.all()
+    queryset = LoteFutCoins.objects.all()
 
 
 class ComprarFutCoins(APIView):
@@ -121,8 +120,9 @@ class ComprarFutCoins(APIView):
             fecha_expiracion = serializer.validated_data.get('fecha_expiracion')
             cvv = serializer.validated_data.get('cvv')
 
-            # Aquí puedes agregar la lógica para procesar el pago con el número de tarjeta
-            # Por simplicidad, asumimos que el pago es exitoso
+            # Para simplificar mi api y no tener que hacer validaciones de tarjeta de credito, solo se incrementa
+            # la cantidad de futcoins y se da por hecho que la compra fue exitosa, en una aplicacion real se deberia
+            # validar la tarjeta de credito y añadir una pasarela de pago con el banco
 
             usuario = request.user
             lote = get_object_or_404(LoteFutCoins, id=lote_id)
