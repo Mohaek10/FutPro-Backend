@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from cartas_app.models import Jugador
-from ventas_app.models import VentaUsuario
+from ventas_app.models import VentaUsuario, Transaccion
 
 
 class MercadoSistemaSerializer(serializers.ModelSerializer):
@@ -46,3 +46,10 @@ class VentaUsuarioSerializer(serializers.ModelSerializer):
         if value.usuario != request.user:
             raise serializers.ValidationError("No puedes vender un jugador que no posees.")
         return value
+
+
+class TransaccionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaccion
+        fields = ['id', 'comprador', 'vendedor', 'jugador', 'precio', 'fecha']
+        depth = 1  # Optional: to include related fields details

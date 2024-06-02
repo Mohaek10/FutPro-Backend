@@ -1,16 +1,17 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from cartas_app.models import Jugador, JugadorUsuario
-from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer
-from ventas_app.models import VentaUsuario
+from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer, \
+    TransaccionSerializer
+from ventas_app.models import VentaUsuario, Transaccion
 
 
-# Vista para ver los jugadores en el mercado del sistema, que tienen en_mercado=True
+# Vista para ver los jugadores en el mercado del sistema, que tienen en_mercado_sistema=True
 class MercadoSistemaList(generics.ListAPIView):
     serializer_class = MercadoSistemaSerializer
     permission_classes = [AllowAny]
@@ -36,10 +37,11 @@ class ComprarMercadoSistema(APIView):
             # Validar que el usuario tenga suficientes FutCoins
             costo_total = jugador.valor * cantidad
             if usuario.futcoins < costo_total:
-                return Response({'error': 'No tienes suficientes FutCoins para comprar este jugador.',
-                                 'futcoins': usuario.futcoins,
-                                 'precioTotal': costo_total, },
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'error': 'No tienes suficientes FutCoins para comprar este jugador.',
+                    'futcoins': usuario.futcoins,
+                    'precioTotal': costo_total
+                }, status=status.HTTP_400_BAD_REQUEST)
 
             # Crear la entrada de jugador_usuario o actualizar la cantidad si ya existe
             jugador_usuario, created = JugadorUsuario.objects.get_or_create(usuario=usuario, jugador=jugador)
@@ -52,10 +54,21 @@ class ComprarMercadoSistema(APIView):
             # Descontar los FutCoins del usuario
             usuario.futcoins -= costo_total
             usuario.save()
-            data = {'success': 'Jugador comprado exitosamente.',
-                    'futcoins': usuario.futcoins,
-                    'jugador': jugador.nombreCompleto,
-                    'precioTotal': costo_total, }
+
+            # Registrar la transacción
+            Transaccion.objects.create(
+                comprador=usuario,
+                vendedor=None,
+                jugador=jugador,
+                precio=costo_total
+            )
+
+            data = {
+                'success': 'Jugador comprado exitosamente.',
+                'futcoins': usuario.futcoins,
+                'jugador': jugador.nombreCompleto,
+                'precioTotal': costo_total
+            }
             return Response(data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -69,7 +82,6 @@ class MercadoUsuariosList(generics.ListAPIView):
         return VentaUsuario.objects.filter(isActive=True)
 
 
-# Vista para poner un jugador en venta
 class PonerEnVentaUsuario(generics.CreateAPIView):
     serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]
@@ -126,6 +138,14 @@ class ComprarJugadorUsuario(APIView):
         venta.isActive = False
         venta.save()
 
+        # Registrar la transacción
+        Transaccion.objects.create(
+            comprador=comprador,
+            vendedor=vendedor,
+            jugador=jugador_usuario.jugador,
+            precio=venta.precio
+        )
+
         return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)
 
 
@@ -146,3 +166,20 @@ class EliminarJugadorDelMercado(APIView):
         venta.save()
 
         return Response({'success': 'Venta eliminada exitosamente.'}, status=status.HTTP_200_OK)
+
+
+class TransaccionesUsuarioList(generics.ListAPIView):
+    serializer_class = TransaccionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaccion.objects.filter(comprador=self.request.user) | Transaccion.objects.filter(
+            vendedor=self.request.user)
+
+
+class TransaccionesAdminList(generics.ListAPIView):
+    serializer_class = TransaccionSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        return Transaccion.objects.all()
