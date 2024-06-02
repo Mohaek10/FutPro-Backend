@@ -64,3 +64,24 @@ class Account(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+
+
+class LoteFutCoins(models.Model):
+    nombre = models.CharField(max_length=100)
+    cantidad = models.PositiveIntegerField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.cantidad} FutCoins por {self.precio} USD"
+
+
+class CompraFutCoins(models.Model):
+    usuario = models.ForeignKey(Account, related_name='compras_futcoins', on_delete=models.CASCADE)
+    lote = models.ForeignKey(LoteFutCoins, on_delete=models.CASCADE)
+    numero_tarjeta = models.CharField(max_length=16)
+    fecha_expiracion = models.CharField(max_length=5)  # MM/YY
+    cvv = models.CharField(max_length=3)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} compró {self.lote.cantidad} FutCoins por {self.lote.precio} USD"
