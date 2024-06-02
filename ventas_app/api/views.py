@@ -81,7 +81,13 @@ class PonerEnVentaUsuario(generics.CreateAPIView):
 
         # Verificar que el jugador_usuario pertenece al vendedor
         if jugador_usuario.usuario != vendedor:
-            raise ValidationError("No puedes vender un jugador que no posees.")
+            raise ValidationError({'error': 'No puedes vender un jugador que no posees.'})
+
+        # Verificar que el vendedor no está poniendo en venta más jugadores de los que posee
+        total_en_venta = VentaUsuario.objects.filter(vendedor=vendedor, jugador_usuario=jugador_usuario,
+                                                     isActive=True).count()
+        if total_en_venta >= jugador_usuario.cantidad:
+            raise ValidationError({'error': 'No puedes poner en venta más jugadores de los que posees.'})
 
         # Crear la entrada de venta
         serializer.save(vendedor=vendedor, jugador_usuario=jugador_usuario)
@@ -121,3 +127,27 @@ class ComprarJugadorUsuario(APIView):
         venta.save()
 
         return Response({'success': 'Jugador comprado exitosamente.'}, status=status.HTTP_200_OK)
+
+
+class EliminarJugadorDelMercado(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, venta_id):
+        venta = get_object_or_404(VentaUsuario, id=venta_id, isActive=True)
+        vendedor = self.request.user
+
+        # Verificar que el vendedor es el dueño de la venta
+        if venta.vendedor != vendedor:
+            return Response({'error': 'No tienes permiso para eliminar esta venta.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Incrementar la cantidad del jugador en la relación JugadorUsuario
+        jugador_usuario = venta.jugador_usuario
+        jugador_usuario.cantidad += 1
+        jugador_usuario.save()
+
+        # Marcar la venta como inactiva
+        venta.isActive = False
+        venta.save()
+
+        return Response({'success': 'Venta eliminada exitosamente.'}, status=status.HTTP_200_OK)
