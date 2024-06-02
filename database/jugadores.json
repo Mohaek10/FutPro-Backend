@@ -1,0 +1,182 @@
+[
+  {
+    "model": "cartas_app.jugador",
+    "pk": 1,
+    "fields": {
+      "nombreCompleto": "Lionel Messi",
+      "edad": 36,
+      "equipo": 1,
+      "media": 93,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/messi.png",
+      "valor": 1000000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 2,
+    "fields": {
+      "nombreCompleto": "Karim Benzema",
+      "edad": 35,
+      "equipo": 2,
+      "media": 91,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/benzema.png",
+      "valor": 800000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 3,
+    "fields": {
+      "nombreCompleto": "Cristiano Ronaldo",
+      "edad": 38,
+      "equipo": 3,
+      "media": 92,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/ronaldo.png",
+      "valor": 900000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 4,
+    "fields": {
+      "nombreCompleto": "Paulo Dybala",
+      "edad": 29,
+      "equipo": 4,
+      "media": 88,
+      "rareza": "Épica",
+      "imagen": "jugadores/dybala.png",
+      "valor": 700000.00,
+      "posicion": "MCO",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 5,
+    "fields": {
+      "nombreCompleto": "Kylian Mbappé",
+      "edad": 25,
+      "equipo": 5,
+      "media": 93,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/mbappe.png",
+      "valor": 1500000.00,
+      "posicion": "EI",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 6,
+    "fields": {
+      "nombreCompleto": "Robert Lewandowski",
+      "edad": 35,
+      "equipo": 6,
+      "media": 92,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/lewandowski.png",
+      "valor": 850000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 7,
+    "fields": {
+      "nombreCompleto": "Mohamed Salah",
+      "edad": 31,
+      "equipo": 7,
+      "media": 91,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/salah.png",
+      "valor": 1100000.00,
+      "posicion": "ED",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 8,
+    "fields": {
+      "nombreCompleto": "Kevin De Bruyne",
+      "edad": 32,
+      "equipo": 8,
+      "media": 91,
+      "rareza": "Legendaria",
+      "imagen": "jugadores/debruyne.png",
+      "valor": 950000.00,
+      "posicion": "MCO",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 9,
+    "fields": {
+      "nombreCompleto": "Lautaro Martinez",
+      "edad": 26,
+      "equipo": 9,
+      "media": 88,
+      "rareza": "Épica",
+      "imagen": "jugadores/martinez.png",
+      "valor": 700000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  },
+  {
+    "model": "cartas_app.jugador",
+    "pk": 10,
+    "fields": {
+      "nombreCompleto": "Zlatan Ibrahimovic",
+      "edad": 41,
+      "equipo": 10,
+      "media": 85,
+      "rareza": "Épica",
+      "imagen": "jugadores/ibrahimovic.png",
+      "valor": 600000.00,
+      "posicion": "DC",
+      "createdAt": "2024-06-02T11:03:35.987192Z",
+      "updatedAt": "2024-06-02T11:03:35.987192Z",
+      "en_mercado": true,
+      "isActive": true
+    }
+  }
+]
