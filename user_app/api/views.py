@@ -4,7 +4,7 @@ from django.contrib import auth
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 # from user_app import models
 from rest_framework.authtoken.models import Token
@@ -150,3 +150,21 @@ class ComprarFutCoins(APIView):
             return Response(data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerCompras(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        compras = CompraFutCoins.objects.filter(usuario=request.user)
+        serializer = CompraFutCoinsSerializer(compras, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class VerTodasLasComprasAdmin(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        compras = CompraFutCoins.objects.all()
+        serializer = CompraFutCoinsSerializer(compras, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

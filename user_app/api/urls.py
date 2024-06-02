@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from user_app.api.views import register, logout_view, login_view, JugadoresUsuarioList, LotesFutCoinsList, \
-    ComprarFutCoins
+    ComprarFutCoins, VerTodasLasComprasAdmin
 
 router = DefaultRouter()
 router.register('lotes-futcoins', LotesFutCoinsList, basename='lotes-futcoins')
@@ -21,5 +21,7 @@ urlpatterns = [
 
     path('comprar-futcoins/', ComprarFutCoins.as_view(), name='comprar-futcoins'),
     path('', include(router.urls)),
+
+    path('todas-las-compras/', VerTodasLasComprasAdmin.as_view(), name='todas-las-compras'),
 
 ]
