@@ -152,13 +152,6 @@ class ComprarJugadorUsuario(APIView):
         vendedor.futcoins += costo_total
         vendedor.save()
 
-        # Actualizar la cantidad del jugador en el vendedor
-        jugador_usuario.cantidad -= cantidad_a_comprar
-        jugador_usuario.save()  # Asegurarse de guardar antes de eliminar
-
-        if jugador_usuario.cantidad == 0:
-            jugador_usuario.delete()  # Eliminar después de guardar la cantidad
-
         # Crear o actualizar la entrada del comprador en JugadorUsuario
         jugador_comprador, created = JugadorUsuario.objects.get_or_create(
             usuario=comprador,
@@ -170,12 +163,20 @@ class ComprarJugadorUsuario(APIView):
             jugador_comprador.cantidad += cantidad_a_comprar
         jugador_comprador.save()
 
-        # Marcar la venta como inactiva si todas las cartas han sido vendidas
-        if venta.cantidad == cantidad_a_comprar:
+        # Actualizar la cantidad del jugador en el vendedor
+        jugador_usuario.cantidad -= cantidad_a_comprar
+        if jugador_usuario.cantidad == 0:
+            # Marcar la venta como inactiva antes de eliminar jugador_usuario
             venta.isActive = False
+            venta.save()
+            jugador_usuario.delete()
         else:
+            jugador_usuario.save()
+            # Actualizar la cantidad en la venta
             venta.cantidad -= cantidad_a_comprar
-        venta.save()
+            if venta.cantidad == 0:
+                venta.isActive = False
+            venta.save()
 
         # Registrar la transacción
         Transaccion.objects.create(
