@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+import base64
 from datetime import timedelta
 from pathlib import Path
 
@@ -21,6 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-t95d(#=k-mg_#qlny#)79cwf@h13dqnuf_*+qgy258r6)4j!e#'
 
+SECRET_KEY_FERNET = base64.urlsafe_b64encode(b'TudHC6lkR6IvK5bVSyGW7TAH8NyeKd3yCV6QscpQxg8=').decode()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -157,7 +159,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
