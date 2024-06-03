@@ -36,10 +36,14 @@ class CompraSistemaSerializer(serializers.Serializer):
 
 class VentaUsuarioSerializer(serializers.ModelSerializer):
     vendedor = serializers.ReadOnlyField(source='vendedor.username')
+    jugador_id = serializers.SerializerMethodField()
 
     class Meta:
         model = VentaUsuario
-        fields = ['id', 'vendedor', 'cantidad', 'jugador_usuario', 'precio', 'fecha', 'isActive']
+        fields = ['id', 'vendedor', 'cantidad', 'jugador_usuario', 'precio', 'fecha', 'isActive', 'jugador_id']
+
+    def get_jugador_id(self, obj):
+        return obj.jugador_usuario.jugador.id
 
     def validate_jugador_usuario(self, value):
         request = self.context.get('request')
@@ -49,7 +53,19 @@ class VentaUsuarioSerializer(serializers.ModelSerializer):
 
 
 class TransaccionSerializer(serializers.ModelSerializer):
+    comprador_username = serializers.SerializerMethodField()
+    vendedor_username = serializers.SerializerMethodField()
+    jugador_nombre = serializers.SerializerMethodField()
+
     class Meta:
         model = Transaccion
-        fields = ['id', 'comprador', 'vendedor', 'jugador', 'precio', 'fecha']
-        depth = 1  # Optional: to include related fields details
+        fields = ['id', 'comprador_username', 'vendedor_username', 'jugador_nombre', 'cantidad', 'precio', 'fecha']
+
+    def get_comprador_username(self, obj):
+        return obj.comprador.username
+
+    def get_vendedor_username(self, obj):
+        return obj.vendedor.username if obj.vendedor else None
+
+    def get_jugador_nombre(self, obj):
+        return obj.jugador.nombreCompleto
