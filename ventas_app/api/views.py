@@ -82,6 +82,9 @@ class MercadoUsuariosList(generics.ListAPIView):
         return VentaUsuario.objects.filter(isActive=True)
 
 
+from django.db.models import Sum
+
+
 class PonerEnVentaUsuario(generics.CreateAPIView):
     serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]
@@ -95,10 +98,15 @@ class PonerEnVentaUsuario(generics.CreateAPIView):
         if jugador_usuario.usuario != vendedor:
             raise ValidationError({'error': 'No puedes vender un jugador que no posees.'})
 
+        # Verificar la cantidad de jugadores a vender y las que tienes en jugador_usuario
+        cantidad = serializer.validated_data.get('cantidad')
+        if cantidad < 1:
+            raise ValidationError({'error': 'La cantidad debe ser mayor a 0.'})
+
         # Verificar que el vendedor no está poniendo en venta más jugadores de los que posee
         total_en_venta = VentaUsuario.objects.filter(vendedor=vendedor, jugador_usuario=jugador_usuario,
-                                                     isActive=True).count()
-        if total_en_venta >= jugador_usuario.cantidad:
+                                                     isActive=True).aggregate(total=Sum('cantidad'))['total'] or 0
+        if total_en_venta + cantidad > jugador_usuario.cantidad:
             raise ValidationError({'error': 'No puedes poner en venta más jugadores de los que posees.'})
 
         # Crear la entrada de venta
@@ -122,6 +130,7 @@ class ComprarJugadorUsuario(APIView):
         # Verificar que el comprador no sea el vendedor
         if venta.vendedor == comprador:
             return Response({'error': 'No puedes comprar tu propio jugador.'}, status=status.HTTP_400_BAD_REQUEST)
+
         costo_total = venta.precio * cantidad_a_comprar
 
         if comprador.futcoins < costo_total:
@@ -130,6 +139,10 @@ class ComprarJugadorUsuario(APIView):
 
         vendedor = venta.vendedor
         jugador_usuario = venta.jugador_usuario
+
+        # Verificar si el vendedor aun tiene el jugador
+        if not JugadorUsuario.objects.filter(usuario=vendedor, jugador=jugador_usuario.jugador).exists():
+            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Verificar que el jugador está disponible
         if jugador_usuario.cantidad < cantidad_a_comprar:

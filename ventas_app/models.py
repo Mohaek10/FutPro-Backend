@@ -19,6 +19,7 @@ class Transaccion(models.Model):
     comprador = models.ForeignKey(Account, related_name='compras', on_delete=models.CASCADE)
     vendedor = models.ForeignKey(Account, related_name='ventas', on_delete=models.CASCADE, null=True, blank=True)
     jugador = models.ForeignKey(Jugador, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField(default=1)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
 
