@@ -1,19 +1,22 @@
 from venv import logger
 
 from django.contrib import auth
-from rest_framework import status, generics
+from rest_framework import status, generics, viewsets
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 # from user_app import models
 from rest_framework.authtoken.models import Token
+from rest_framework.views import APIView
 
+from user_app.api.permissions import IsAdminorReadOnly
 from cartas_app.api.serializers import JugadorUsuarioSerializer
 from cartas_app.models import JugadorUsuario
-from user_app.api.serializers import RegistrationSerializer
+from user_app.api.serializers import RegistrationSerializer, CompraFutCoinsSerializer, LoteFutCoinsSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from user_app.models import Account
+from user_app.models import Account, CompraFutCoins, LoteFutCoins
 
 
 @api_view(['POST'])
@@ -98,3 +101,70 @@ class JugadoresUsuarioList(generics.ListAPIView):
 
     def get_queryset(self):
         return JugadorUsuario.objects.filter(usuario=self.request.user)
+
+
+class LotesFutCoinsList(viewsets.ModelViewSet):
+    permission_classes = [IsAdminorReadOnly]
+    serializer_class = LoteFutCoinsSerializer
+    queryset = LoteFutCoins.objects.all()
+
+
+class ComprarFutCoins(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = CompraFutCoinsSerializer(data=request.data)
+        if serializer.is_valid():
+            lote_id = serializer.validated_data.get('lote').id
+            numero_tarjeta = serializer.validated_data.get('numero_tarjeta')
+            fecha_expiracion = serializer.validated_data.get('fecha_expiracion')
+            cvv = serializer.validated_data.get('cvv')
+
+            # Para simplificar mi api y no tener que hacer validaciones de tarjeta de credito, solo se incrementa
+            # la cantidad de futcoins y se da por hecho que la compra fue exitosa, en una aplicacion real se deberia
+            # validar la tarjeta de credito y añadir una pasarela de pago con el banco
+
+            usuario = request.user
+            lote = get_object_or_404(LoteFutCoins, id=lote_id)
+
+            # Incrementar FutCoins del usuario
+            usuario.futcoins += lote.cantidad
+            usuario.save()
+
+            # Registrar la compra de FutCoins
+            CompraFutCoins.objects.create(
+                usuario=usuario,
+                lote=lote,
+                numero_tarjeta=numero_tarjeta,
+                fecha_expiracion=fecha_expiracion,
+                cvv=cvv
+            )
+
+            data = {
+                'success': 'FutCoins compradas exitosamente.',
+                'futcoins': usuario.futcoins,
+                'lote': lote.nombre,
+                'cantidad': lote.cantidad,
+                'precio': lote.precio
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerCompras(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        compras = CompraFutCoins.objects.filter(usuario=request.user)
+        serializer = CompraFutCoinsSerializer(compras, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class VerTodasLasComprasAdmin(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        compras = CompraFutCoins.objects.all()
+        serializer = CompraFutCoinsSerializer(compras, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

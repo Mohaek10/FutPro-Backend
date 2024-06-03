@@ -39,7 +39,7 @@ class VentaUsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VentaUsuario
-        fields = ['id', 'vendedor', 'jugador_usuario', 'precio', 'fecha', 'isActive']
+        fields = ['id', 'vendedor', 'cantidad', 'jugador_usuario', 'precio', 'fecha', 'isActive']
 
     def validate_jugador_usuario(self, value):
         request = self.context.get('request')

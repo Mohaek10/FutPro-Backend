@@ -1,0 +1,38 @@
+[
+  {
+    "model": "user_app.LoteFutCoins",
+    "pk": 1,
+    "fields": {
+      "nombre": "Paquete Pequeño",
+      "cantidad": 100000,
+      "precio": 4.99
+    }
+  },
+  {
+    "model": "user_app.LoteFutCoins",
+    "pk": 2,
+    "fields": {
+      "nombre": "Paquete Mediano",
+      "cantidad": 500000,
+      "precio": 19.99
+    }
+  },
+  {
+    "model": "user_app.LoteFutCoins",
+    "pk": 3,
+    "fields": {
+      "nombre": "Paquete Grande",
+      "cantidad": 1000000,
+      "precio": 34.99
+    }
+  },
+  {
+    "model": "user_app.LoteFutCoins",
+    "pk": 4,
+    "fields": {
+      "nombre": "Paquete Extra Grande",
+      "cantidad": 20000000,
+      "precio": 59.99
+    }
+  }
+]
