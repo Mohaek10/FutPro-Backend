@@ -1,6 +1,7 @@
 from venv import logger
-
+from rest_framework import serializers
 from django.contrib import auth
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
@@ -13,7 +14,8 @@ from rest_framework.views import APIView
 from user_app.api.permissions import IsAdminorReadOnly
 from cartas_app.api.serializers import JugadorUsuarioSerializer
 from cartas_app.models import JugadorUsuario
-from user_app.api.serializers import RegistrationSerializer, CompraFutCoinsSerializer, LoteFutCoinsSerializer
+from user_app.api.serializers import RegistrationSerializer, CompraFutCoinsSerializer, LoteFutCoinsSerializer, \
+    UserProfileSerializer, ChangePasswordSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from user_app.models import Account, CompraFutCoins, LoteFutCoins
@@ -91,6 +93,38 @@ def register(request):
                 'access': str(refresh.access_token),
             }
             return Response(data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            old_password = serializer.validated_data['old_password']
+            new_password = serializer.validated_data['new_password']
+
+            if not request.user.check_password(old_password):
+                return Response({'old_password': 'La contraseña antigua no es correcta'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                validate_password(new_password, request.user)
+            except serializers.ValidationError as e:
+                return Response({'new_password': e.messages}, status=status.HTTP_400_BAD_REQUEST)
+
+            request.user.set_password(new_password)
+            request.user.save()
+            return Response({'success': 'La contraseña ha sido cambiada exitosamente'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
