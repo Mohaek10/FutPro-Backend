@@ -44,6 +44,25 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['first_name', 'last_name', 'username', 'email', 'phone_number', 'futcoins']
+        read_only_fields = ['futcoins']
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_new_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError('La contraseña debe tener al menos 8 caracteres')
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError('La contraseña debe tener al menos un número')
+        return value
+
+
 class LoteFutCoinsSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoteFutCoins
