@@ -139,10 +139,6 @@ class ComprarJugadorUsuario(APIView):
         vendedor = venta.vendedor
         jugador_usuario = venta.jugador_usuario
 
-        # Verificar si el vendedor aun tiene el jugador
-        if not JugadorUsuario.objects.filter(usuario=vendedor, jugador=jugador_usuario.jugador).exists():
-            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
-
         # Verificar que el jugador está disponible
         if jugador_usuario.cantidad < cantidad_a_comprar:
             return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -156,11 +152,10 @@ class ComprarJugadorUsuario(APIView):
 
         # Actualizar la cantidad del jugador en el vendedor
         jugador_usuario.cantidad -= cantidad_a_comprar
+        jugador_usuario.save()  # Asegurarse de guardar antes de eliminar
+
         if jugador_usuario.cantidad == 0:
-            jugador_usuario.delete()
-            jugador_usuario.save()
-        else:
-            jugador_usuario.save()
+            jugador_usuario.delete()  # Eliminar después de guardar la cantidad
 
         # Crear o actualizar la entrada del comprador en JugadorUsuario
         jugador_comprador, created = JugadorUsuario.objects.get_or_create(
