@@ -130,7 +130,6 @@ class ComprarJugadorUsuario(APIView):
         # Verificar que el comprador no sea el vendedor
         if venta.vendedor == comprador:
             return Response({'error': 'No puedes comprar tu propio jugador.'}, status=status.HTTP_400_BAD_REQUEST)
-
         costo_total = venta.precio * cantidad_a_comprar
 
         if comprador.futcoins < costo_total:
@@ -159,12 +158,15 @@ class ComprarJugadorUsuario(APIView):
         jugador_usuario.cantidad -= cantidad_a_comprar
         if jugador_usuario.cantidad == 0:
             jugador_usuario.delete()
+            jugador_usuario.save()
         else:
             jugador_usuario.save()
 
         # Crear o actualizar la entrada del comprador en JugadorUsuario
-        jugador_comprador, created = JugadorUsuario.objects.get_or_create(usuario=comprador,
-                                                                          jugador=jugador_usuario.jugador)
+        jugador_comprador, created = JugadorUsuario.objects.get_or_create(
+            usuario=comprador,
+            jugador=jugador_usuario.jugador
+        )
         if created:
             jugador_comprador.cantidad = cantidad_a_comprar
         else:
