@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -11,7 +12,7 @@ from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSe
 from ventas_app.models import VentaUsuario, Transaccion
 
 
-# Vista para ver los jugadores en el mercado del sistema, que tienen en_mercado_sistema=True
+# Vista para ver los jugadores en el mercado del sistema, que tienen en_mercado=True
 class MercadoSistemaList(generics.ListAPIView):
     serializer_class = MercadoSistemaSerializer
     permission_classes = [AllowAny]
@@ -82,9 +83,6 @@ class MercadoUsuariosList(generics.ListAPIView):
         return VentaUsuario.objects.filter(isActive=True)
 
 
-from django.db.models import Sum
-
-
 class PonerEnVentaUsuario(generics.CreateAPIView):
     serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]
@@ -138,6 +136,10 @@ class ComprarJugadorUsuario(APIView):
 
         vendedor = venta.vendedor
         jugador_usuario = venta.jugador_usuario
+
+        # Verificar si el vendedor aun tiene el jugador
+        if not JugadorUsuario.objects.filter(usuario=vendedor, jugador=jugador_usuario.jugador).exists():
+            return Response({'error': 'El jugador ya no está disponible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Verificar que el jugador está disponible
         if jugador_usuario.cantidad < cantidad_a_comprar:
