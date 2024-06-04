@@ -69,7 +69,7 @@ class EquipoSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        if not instance.isActive and (not request or not request.user.is_staff):
+        if not instance.isActive and (not request or not request.user.is_admin):
             return None
         return super(EquipoSerializer, self).to_representation(instance)
 

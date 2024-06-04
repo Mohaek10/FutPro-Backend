@@ -5,5 +5,5 @@ class IsAdminorReadOnly(permissions.IsAdminUser):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        staff_permissions = bool(request.user and request.user.is_staff)
+        staff_permissions = bool(request.user and request.user.is_admin)
         return staff_permissions

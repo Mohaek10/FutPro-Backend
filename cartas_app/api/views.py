@@ -18,7 +18,7 @@ class JugadorAV(APIView):
     permission_classes = [IsAdminorReadOnly]
 
     def get(self, request):
-        if request.user.is_staff:
+        if request.user.is_admin:
             jugadores = Jugador.objects.all()  # Admins can see all players
         else:
             jugadores = Jugador.activos()  # Non-admins can see only active players
@@ -26,7 +26,7 @@ class JugadorAV(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        if not request.user.is_authenticated or not request.user.is_staff:
+        if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = JugadorSerializer(data=request.data)
@@ -44,13 +44,13 @@ class JugadorDV(APIView):
 
     def get(self, request, pk):
         jugador = self.get_object(pk)
-        if not jugador.isActive and not request.user.is_staff:
+        if not jugador.isActive and not request.user.is_admin:
             raise NotFound(detail="No Jugador matches the given query.")  # Forzar la misma excepción
         serializer = JugadorSerializer(jugador, context={'request': request})
         return Response(serializer.data)
 
     def put(self, request, pk):
-        if not request.user.is_authenticated or not request.user.is_staff:
+        if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
         logger.info(f'User {request.user} updated player {pk}')
         jugador = self.get_object(pk)
@@ -61,7 +61,7 @@ class JugadorDV(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        if not request.user.is_authenticated or not request.user.is_staff:
+        if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
         logger.info(f'User {request.user} deleted player {pk}')
         jugador = self.get_object(pk)
@@ -74,14 +74,14 @@ class EquipoAV(viewsets.ModelViewSet):
     permission_classes = [IsAdminorReadOnly]
 
     def get_queryset(self):
-        if self.request.user.is_authenticated and self.request.user.is_staff:
+        if self.request.user.is_authenticated and self.request.user.is_admin:
             return Equipo.objects.all()  # Admins can see all teams
         return Equipo.activos()  # Non-admins can see only active teams
 
     serializer_class = EquipoSerializer
 
     def destroy(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_staff:
+        if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
 
         equipo = self.get_object()
