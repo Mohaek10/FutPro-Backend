@@ -44,6 +44,8 @@ def login_view(request):
             data['last_name'] = account.last_name
             data['phone_number'] = account.phone_number
             data['futcoins'] = account.futcoins
+            data['date_joined'] = account.date_joined
+            data['is_admin'] = account.is_admin
             refresh = RefreshToken.for_user(account)
             data['token'] = {
                 'refresh': str(refresh),
