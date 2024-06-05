@@ -104,6 +104,7 @@ def register(request):
 @permission_classes([IsAuthenticated])
 def check_admin_status(request):
     user = request.user
+    print(user.is_admin)
     return Response({'is_admin': user.is_admin}, status=status.HTTP_200_OK)
 
 
