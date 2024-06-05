@@ -75,8 +75,8 @@ class EquipoAV(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.is_admin:
-            return Equipo.objects.all()  # Admins can see all teams
-        return Equipo.activos()  # Non-admins can see only active teams
+            return Equipo.objects.all()  # Admins pueden ver todos los equipos
+        return Equipo.activos()  # No-admins pueden ver solo los equipos activos
 
     serializer_class = EquipoSerializer
 
