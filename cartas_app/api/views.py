@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 
 from cartas_app.api.permissions import IsAdminorReadOnly, IsComentarioUserOrReadOnly
 from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer, ComentarioSerializer, \
@@ -14,22 +15,24 @@ from cartas_app.models import Jugador, Equipo, Comentario, JugadorUsuario
 from user_app.models import Account
 
 
-class JugadorAV(APIView):
+class JugadorAV(viewsets.ModelViewSet):
     permission_classes = [IsAdminorReadOnly]
+    serializer_class = JugadorSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['nombreCompleto', 'media', 'equipo__nombre']
 
-    def get(self, request):
-        if request.user.is_admin:
-            jugadores = Jugador.objects.all()  # Admins can see all players
+    def get_queryset(self):
+        if self.request.user.is_admin:
+            jugadores = Jugador.objects.all()
         else:
             jugadores = Jugador.activos()  # Non-admins can see only active players
-        serializer = JugadorSerializer(jugadores, many=True, context={'request': request})
-        return Response(serializer.data)
+        return jugadores
 
-    def post(self, request):
+    def create(self, request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = JugadorSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
