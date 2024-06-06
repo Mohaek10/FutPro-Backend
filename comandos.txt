@@ -19,3 +19,5 @@ python manage.py dumpdata nombre_app para ver los datos de una app
 python manage.py dumpdata nombre_app --format xml -o nombre_archivo.xml para guardar los datos de una app en un archivo XML
 python manage.py dumpdata nombre_app --format json -o nombre_archivo.json para guardar los datos de una app en un archivo JSON
 python manage.py loaddata nombre_archivo para cargar los datos de un archivo
+python manage.py loaddata .\database\equipos.json
+python manage.py loaddata .\database\jugadores.json
