@@ -6,8 +6,9 @@ from cartas_app.api.views import JugadorAV, JugadorDV, EquipoAV, ComentarioCreat
 
 router = DefaultRouter()
 router.register('equipos', EquipoAV, basename='equipo')  # basename='equipo' es opcional
+router.register('jugadores', JugadorAV, basename='jugador')  # basename='jugador' es opcional
 urlpatterns = [
-    path('jugadores/', JugadorAV.as_view(), name='jugadores'),
+
     path('jugadores/<int:pk>', JugadorDV.as_view(), name='jugador-detalle'),
 
     # Crear comentario de un jugador apartir de su id
