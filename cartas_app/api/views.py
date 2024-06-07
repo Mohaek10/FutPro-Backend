@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
+from cartas_app.api.filters import JugadorFilter
 from cartas_app.api.permissions import IsAdminorReadOnly, IsComentarioUserOrReadOnly
 from cartas_app.api.serializers import JugadorSerializer, EquipoSerializer, ComentarioSerializer, \
     JugadorUsuarioSerializer
@@ -18,11 +20,12 @@ from user_app.models import Account
 class JugadorAV(viewsets.ModelViewSet):
     permission_classes = [IsAdminorReadOnly]
     serializer_class = JugadorSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['nombreCompleto', 'media', 'equipo__nombre']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = JugadorFilter
+    search_fields = ['nombreCompleto', 'equipo__nombre']
 
     def get_queryset(self):
-        if self.request.user.is_admin:
+        if self.request.user.is_authenticated and self.request.user.is_admin:
             jugadores = Jugador.objects.all()
         else:
             jugadores = Jugador.activos()  # Non-admins can see only active players
