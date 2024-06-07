@@ -78,13 +78,14 @@ class JugadorDV(APIView):
 
 class EquipoAV(viewsets.ModelViewSet):
     permission_classes = [IsAdminorReadOnly]
+    serializer_class = EquipoSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['nombre']
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.is_admin:
             return Equipo.objects.all()  # Admins pueden ver todos los equipos
         return Equipo.activos()  # No-admins pueden ver solo los equipos activos
-
-    serializer_class = EquipoSerializer
 
     def destroy(self, request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_admin:
