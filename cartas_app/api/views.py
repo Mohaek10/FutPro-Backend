@@ -2,6 +2,7 @@ from venv import logger
 
 from rest_framework import status, viewsets, generics
 from rest_framework.exceptions import PermissionDenied, ValidationError, NotFound
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny, IsAuthenticatedOrReadOnly
@@ -23,6 +24,7 @@ class JugadorAV(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class = JugadorFilter
     search_fields = ['nombreCompleto', 'equipo__nombre']
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         if self.request.user.is_authenticated and self.request.user.is_admin:
