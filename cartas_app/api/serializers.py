@@ -29,6 +29,7 @@ class JugadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Jugador
         fields = '__all__'
+        read_only_fields = ['createdAt', 'updatedAt', 'en_mercado', 'isActive', ]
 
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
@@ -60,6 +61,11 @@ class JugadorSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError("El valor no puede ser negativo.")
         return value
+
+    def create(self, validated_data):
+        validated_data['isActive'] = True
+        
+        return super(JugadorSerializer, self).create(validated_data)
 
 
 class EquipoSerializer(serializers.ModelSerializer):

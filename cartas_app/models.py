@@ -52,7 +52,7 @@ class Jugador(models.Model):
     media = models.IntegerField()
     rareza = models.CharField(max_length=250)
     imagen = models.ImageField(upload_to='jugadores/', null=True, blank=True)
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    valor = models.DecimalField(max_digits=13, decimal_places=2)
     posicion = models.CharField(max_length=3, choices=POSICION_CHOICES)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
