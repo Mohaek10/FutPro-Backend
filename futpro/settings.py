@@ -93,6 +93,7 @@ AUTH_USER_MODEL = 'user_app.Account'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+ATOMIC_REQUESTS = True
 
 DATABASES = {
     'default': {
@@ -149,10 +150,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
