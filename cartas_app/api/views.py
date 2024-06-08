@@ -28,7 +28,8 @@ class JugadorAV(viewsets.ModelViewSet):
         if self.request.user.is_authenticated and self.request.user.is_admin:
             jugadores = Jugador.objects.all()
         else:
-            jugadores = Jugador.activos()  # Non-admins can see only active players
+            jugadores = Jugador.activos()  # Los No-admins solo pueden ver
+            # jugadores activos, osea los usuarios normales y los no autenticados
         return jugadores
 
     def create(self, request, *args, **kwargs):
