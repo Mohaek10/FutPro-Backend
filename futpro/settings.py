@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': 10,
 
     # 'DEFAULT_THROTTLE_RATES': {
     #     'anon': '10000/day',
@@ -176,7 +176,6 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_CLAIM': 'jti',
 }
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
