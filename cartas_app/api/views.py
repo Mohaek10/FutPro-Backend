@@ -21,9 +21,10 @@ from user_app.models import Account
 class JugadorAV(viewsets.ModelViewSet):
     permission_classes = [IsAdminorReadOnly]
     serializer_class = JugadorSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = JugadorFilter
     search_fields = ['nombreCompleto', 'equipo__nombre']
+    ordering_fields = ['media', 'edad', 'valor', 'createdAt']
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
