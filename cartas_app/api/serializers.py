@@ -25,11 +25,15 @@ class ComentarioSerializer(serializers.ModelSerializer):
 class JugadorSerializer(serializers.ModelSerializer):
     comentarios = ComentarioSerializer(many=True, read_only=True)
     nombre_equipo = serializers.SerializerMethodField()
+    escudo = serializers.SerializerMethodField()
 
     class Meta:
         model = Jugador
         fields = '__all__'
         read_only_fields = ['createdAt', 'updatedAt', 'en_mercado', 'isActive', ]
+
+    def get_escudo(self, obj):
+        return obj.equipo.escudo
 
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
@@ -64,7 +68,7 @@ class JugadorSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['isActive'] = True
-        
+
         return super(JugadorSerializer, self).create(validated_data)
 
 
