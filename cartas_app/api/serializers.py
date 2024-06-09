@@ -30,7 +30,7 @@ class JugadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Jugador
         fields = '__all__'
-        read_only_fields = ['createdAt', 'updatedAt', 'en_mercado', 'isActive', ]
+        read_only_fields = ['createdAt', 'updatedAt', ]
 
     def get_escudo(self, obj):
         return obj.equipo.escudo
