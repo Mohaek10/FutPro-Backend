@@ -43,6 +43,7 @@ class CompraSistemaSerializer(serializers.Serializer):
 class VentaUsuarioSerializer(serializers.ModelSerializer):
     vendedor = serializers.ReadOnlyField(source='vendedor.username')
     jugador_id = serializers.SerializerMethodField()
+    # jugador_nombre = serializers.ReadOnlyField(source='jugador_usuario.jugador.nombreCompleto')
     jugador = JugadorSerializer(read_only=True, source='jugador_usuario.jugador')
 
     class Meta:
