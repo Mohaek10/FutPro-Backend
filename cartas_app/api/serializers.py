@@ -89,8 +89,7 @@ class EquipoSerializer(serializers.ModelSerializer):
 class JugadorUsuarioSerializer(serializers.ModelSerializer):
     usuario = serializers.PrimaryKeyRelatedField(queryset=Account.objects.all())
     username = serializers.SerializerMethodField()
-    jugador = serializers.PrimaryKeyRelatedField(queryset=Jugador.objects.all())
-    nombreCompleto = serializers.SerializerMethodField()
+    jugadorSerializado = JugadorSerializer(read_only=True, source='jugador')
 
     class Meta:
         model = JugadorUsuario
@@ -98,6 +97,3 @@ class JugadorUsuarioSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj):
         return obj.usuario.username
-
-    def get_nombreCompleto(self, obj):
-        return obj.jugador.nombreCompleto
