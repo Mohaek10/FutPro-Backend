@@ -1,18 +1,24 @@
 from rest_framework import serializers
+
+from cartas_app.api.serializers import JugadorSerializer
 from cartas_app.models import Jugador
 from ventas_app.models import VentaUsuario, Transaccion
 
 
 class MercadoSistemaSerializer(serializers.ModelSerializer):
     nombre_equipo = serializers.SerializerMethodField()
+    escudo = serializers.SerializerMethodField()
 
     class Meta:
         model = Jugador
         fields = ['id', 'nombreCompleto', 'edad', 'media', 'rareza', 'imagen', 'valor', 'posicion', 'en_mercado',
-                  'nombre_equipo', 'updatedAt']
+                  'nombre_equipo', 'updatedAt', 'escudo']
 
     def get_nombre_equipo(self, obj):
         return obj.equipo.nombre
+
+    def get_escudo(self, obj):
+        return obj.equipo.escudo
 
 
 class CompraSistemaSerializer(serializers.Serializer):
@@ -37,10 +43,11 @@ class CompraSistemaSerializer(serializers.Serializer):
 class VentaUsuarioSerializer(serializers.ModelSerializer):
     vendedor = serializers.ReadOnlyField(source='vendedor.username')
     jugador_id = serializers.SerializerMethodField()
+    jugador = JugadorSerializer(read_only=True, source='jugador_usuario.jugador')
 
     class Meta:
         model = VentaUsuario
-        fields = ['id', 'vendedor', 'cantidad', 'jugador_usuario', 'precio', 'fecha', 'isActive', 'jugador_id']
+        fields = '__all__'
 
     def get_jugador_id(self, obj):
         return obj.jugador_usuario.jugador.id
