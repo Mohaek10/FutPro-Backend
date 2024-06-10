@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from cartas_app.api.filters import JugadorFilter
 from cartas_app.models import Jugador, JugadorUsuario
+from ventas_app.api.filters import VentaUsuarioFilter
 from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer, \
     TransaccionSerializer
 from ventas_app.models import VentaUsuario, Transaccion
@@ -84,6 +85,11 @@ class ComprarMercadoSistema(APIView):
 class MercadoUsuariosList(generics.ListAPIView):
     serializer_class = VentaUsuarioSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = VentaUsuarioFilter
+    search_fields = ['jugador_usuario__jugador__nombreCompleto', 'jugador_usuario__jugador__equipo__nombre']
+    ordering_fields = ['jugador_usuario__jugador__media', 'jugador_usuario__jugador__edad',
+                       'jugador_usuario__jugador__valor', 'fecha']
 
     def get_queryset(self):
         return VentaUsuario.objects.filter(isActive=True)
