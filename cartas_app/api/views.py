@@ -128,7 +128,7 @@ class ComentarioCreate(generics.CreateAPIView):
         user = self.request.user
         comentario_queryset = Comentario.objects.filter(jugador=jugador, comentario_user=user)
         if comentario_queryset.exists():
-            raise ValidationError('Ya has comentado este jugador')
+            raise ValidationError({'error': 'Ya has comentado en este jugador.'})
 
         serializer.save(comentario_user=user, jugador=jugador)
 

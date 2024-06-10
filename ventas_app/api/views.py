@@ -1,11 +1,13 @@
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
-from rest_framework import status, generics
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, generics, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
+from cartas_app.api.filters import JugadorFilter
 from cartas_app.models import Jugador, JugadorUsuario
 from ventas_app.api.serializers import MercadoSistemaSerializer, CompraSistemaSerializer, VentaUsuarioSerializer, \
     TransaccionSerializer
@@ -16,6 +18,10 @@ from ventas_app.models import VentaUsuario, Transaccion
 class MercadoSistemaList(generics.ListAPIView):
     serializer_class = MercadoSistemaSerializer
     permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = JugadorFilter
+    search_fields = ['nombreCompleto', 'equipo__nombre']
+    ordering_fields = ['media', 'edad', 'valor', 'createdAt']
 
     def get_queryset(self):
         return Jugador.objects.filter(en_mercado=True, isActive=True)
