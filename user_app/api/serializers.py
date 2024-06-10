@@ -47,7 +47,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['first_name', 'last_name', 'username', 'email', 'phone_number', 'futcoins']
+        exclude = ['password', 'last_login', 'is_superuser', 'is_staff', 'is_active', 'id']
         read_only_fields = ['futcoins']
 
 
