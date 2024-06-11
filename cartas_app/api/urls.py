@@ -9,7 +9,7 @@ router.register('equipos', EquipoAV, basename='equipo')  # basename='equipo' es 
 router.register('jugadores', JugadorAV, basename='jugador')  # basename='jugador' es opcional
 urlpatterns = [
 
-    path('jugadores/<int:pk>', JugadorDV.as_view(), name='jugador-detalle'),
+    path('jugador/<int:pk>/', JugadorDV.as_view(), name='jugador-detalle'),
 
     # Crear comentario de un jugador apartir de su id
     path('jugador/<int:pk>/comentario-create', ComentarioCreate.as_view(), name='comentario-create'),
