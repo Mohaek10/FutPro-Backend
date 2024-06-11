@@ -47,8 +47,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        exclude = ['password', 'last_login', 'is_superuser', 'is_staff', 'is_active', 'id']
-        read_only_fields = ['futcoins']
+        fields = ['first_name', 'last_name', 'phone_number', 'email', 'username', 'is_admin', 'date_joined',
+                  'last_login',
+                  'futcoins', 'is_active']
+        read_only_fields = ['email', 'username', 'is_admin', 'is_staff', 'is_superuser', 'date_joined', 'last_login',
+                            'futcoins']
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.save()
+        return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):
