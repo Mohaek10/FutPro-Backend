@@ -232,13 +232,15 @@ class TransaccionesUsuarioList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Transaccion.objects.filter(comprador=self.request.user) | Transaccion.objects.filter(
-            vendedor=self.request.user)
+        return (Transaccion.objects.filter(comprador=self.request.user) | Transaccion.objects.filter(
+            vendedor=self.request.user)).order_by('-fecha')
 
 
 class TransaccionesAdminList(generics.ListAPIView):
     serializer_class = TransaccionSerializer
     permission_classes = [IsAdminUser]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['vendedor__username', 'comprador__username']
 
     def get_queryset(self):
-        return Transaccion.objects.all()
+        return Transaccion.objects.all().order_by('-fecha')
