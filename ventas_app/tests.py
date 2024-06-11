@@ -96,14 +96,6 @@ def venta_usuario(db, user, jugador_usuario):
 
 
 @pytest.mark.django_db
-def test_mercado_sistema_list(api_client, jugador):
-    url = reverse('mercado-sistema')
-    response = api_client.get(url)
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data
-
-
-@pytest.mark.django_db
 def test_comprar_mercado_sistema(api_client, user, jugador):
     url = reverse('comprar-sistema')
     api_client.force_authenticate(user=user)
@@ -112,7 +104,24 @@ def test_comprar_mercado_sistema(api_client, user, jugador):
         'cantidad': 2
     }
     response = api_client.post(url, data, format='json')
+    print(response.data)  # Añadir depuración
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_sin_futcoins(api_client, user, jugador):
+    user.futcoins = 50  # Insuficientes FutCoins
+    user.save()
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    print(response.data)  # Añadir depuración
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
 
 
 @pytest.mark.django_db
@@ -139,6 +148,20 @@ def test_poner_en_venta_usuario(api_client, user, jugador_usuario):
 
 
 @pytest.mark.django_db
+def test_poner_en_venta_mas_de_lo_que_posee(api_client, user, jugador_usuario):
+    url = reverse('poner-en-venta-usuario')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_usuario': jugador_usuario.id,
+        'cantidad': 20,  # Cantidad mayor a la que posee
+        'precio': 150
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
 def test_comprar_jugador_usuario(api_client, user, venta_usuario, create_user):
     comprador = create_user(
         email='comprador@example.com',
@@ -147,6 +170,29 @@ def test_comprar_jugador_usuario(api_client, user, venta_usuario, create_user):
         last_name='Example',
         password='password123'
     )
+    comprador.futcoins = 1000  # Suficientes FutCoins
+    comprador.save()
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert 'success' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_sin_futcoins(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 50  # Insuficientes FutCoins
+    comprador.save()
     url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
     api_client.force_authenticate(user=comprador)
     data = {
@@ -154,6 +200,7 @@ def test_comprar_jugador_usuario(api_client, user, venta_usuario, create_user):
     }
     response = api_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
 
 
 @pytest.mark.django_db
@@ -166,6 +213,22 @@ def test_eliminar_jugador_del_mercado(api_client, user, venta_usuario):
 
 
 @pytest.mark.django_db
+def test_eliminar_jugador_del_mercado_no_autorizado(api_client, create_user, venta_usuario):
+    otro_usuario = create_user(
+        email='otro@example.com',
+        username='otro',
+        first_name='Otro',
+        last_name='Usuario',
+        password='password123'
+    )
+    url = reverse('eliminar-venta-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=otro_usuario)
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
 def test_transacciones_usuario_list(api_client, user, venta_usuario):
     url = reverse('transacciones-usuario')
     api_client.force_authenticate(user=user)
@@ -175,9 +238,25 @@ def test_transacciones_usuario_list(api_client, user, venta_usuario):
 
 
 @pytest.mark.django_db
+def test_transacciones_usuario_list_no_autenticado(api_client, venta_usuario):
+    url = reverse('transacciones-usuario')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
 def test_transacciones_admin_list(api_client, admin_user, venta_usuario):
     url = reverse('transacciones-admin')
     api_client.force_authenticate(user=admin_user)
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data
+
+
+@pytest.mark.django_db
+def test_mercado_usuarios_list_con_filtro(api_client, user, venta_usuario):
+    url = f"{reverse('mercado-usuarios')}?search=Jugador Ejemplo"
+    api_client.force_authenticate(user=user)
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
     assert response.data
