@@ -260,3 +260,157 @@ def test_mercado_usuarios_list_con_filtro(api_client, user, venta_usuario):
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
     assert response.data
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_con_cantidad_negativa(api_client, user, jugador):
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': -1  # Cantidad negativa
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'cantidad' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_jugador_no_activo(api_client, user, jugador):
+    jugador.isActive = False
+    jugador.save()
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert 'detail' in response.data
+
+
+@pytest.mark.django_db
+def test_poner_en_venta_usuario_jugador_no_pertenece(api_client, create_user, jugador_usuario):
+    otro_usuario = create_user(
+        email='otro@example.com',
+        username='otro',
+        first_name='Otro',
+        last_name='Usuario',
+        password='password123'
+    )
+    url = reverse('poner-en-venta-usuario')
+    api_client.force_authenticate(user=otro_usuario)
+    data = {
+        'jugador_usuario': jugador_usuario.id,
+        'cantidad': 3,
+        'precio': 150
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_mercado_usuarios_list_no_autenticado(api_client):
+    url = reverse('mercado-usuarios')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_inactivo(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 1000  # Suficientes FutCoins
+    comprador.save()
+    venta_usuario.isActive = False
+    venta_usuario.save()
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert 'detail' in response.data
+
+
+@pytest.mark.django_db
+def test_eliminar_jugador_del_mercado_inactivo(api_client, user, venta_usuario):
+    venta_usuario.isActive = False
+    venta_usuario.save()
+    url = reverse('eliminar-venta-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=user)
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert 'detail' in response.data
+
+
+@pytest.mark.django_db
+def test_transacciones_admin_list_no_autenticado(api_client):
+    url = reverse('transacciones-admin')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_transacciones_admin_list_usuario_normal(api_client, user):
+    url = reverse('transacciones-admin')
+    api_client.force_authenticate(user=user)
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_sin_autenticar(api_client, jugador):
+    url = reverse('comprar-sistema')
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_poner_en_venta_usuario_sin_autenticar(api_client, jugador_usuario):
+    url = reverse('poner-en-venta-usuario')
+    data = {
+        'jugador_usuario': jugador_usuario.id,
+        'cantidad': 3,
+        'precio': 150
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_eliminar_jugador_del_mercado_sin_autenticar(api_client, venta_usuario):
+    url = reverse('eliminar-venta-usuario', args=[venta_usuario.id])
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_cantidad_negativa(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 1000  # Suficientes FutCoins
+    comprador.save()
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': -1  # Cantidad negativa
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
