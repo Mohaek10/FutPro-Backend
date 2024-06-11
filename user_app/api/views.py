@@ -45,7 +45,9 @@ def login_view(request):
             data['phone_number'] = account.phone_number
             data['futcoins'] = account.futcoins
             data['date_joined'] = account.date_joined
+            data['last_login'] = account.last_login
             data['is_admin'] = account.is_admin
+            data['is_active'] = account.is_active
             refresh = RefreshToken.for_user(account)
             data['token'] = {
                 'refresh': str(refresh),
@@ -90,7 +92,9 @@ def register(request):
             data['phone_number'] = account.phone_number
             data['futcoins'] = account.futcoins
             data['date_joined'] = account.date_joined
+            data['last_login'] = account.last_login
             data['is_admin'] = account.is_admin
+            data['is_active'] = account.is_active
             refresh = RefreshToken.for_user(account)
             data['token'] = {
                 'refresh': str(refresh),
