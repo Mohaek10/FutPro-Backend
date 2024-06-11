@@ -45,6 +45,15 @@ class JugadorAV(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_admin:
+            return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
+        logger.info(f'User {request.user} deleted player {kwargs["pk"]}')
+        jugador = self.get_object()
+        jugador.isActive = False
+        jugador.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class JugadorDV(APIView):
     permission_classes = [IsAdminorReadOnly]
@@ -70,11 +79,11 @@ class JugadorDV(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
+    def destroy(self, request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_admin:
             return Response({'error': 'No tienes permiso para realizar esta acción.'}, status=status.HTTP_403_FORBIDDEN)
-        logger.info(f'User {request.user} deleted player {pk}')
-        jugador = self.get_object(pk)
+        logger.info(f'User {request.user} deleted player {kwargs["pk"]}')
+        jugador = self.get_object(kwargs['pk'])
         jugador.isActive = False
         jugador.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
