@@ -414,3 +414,182 @@ def test_comprar_jugador_usuario_cantidad_negativa(api_client, user, venta_usuar
     }
     response = api_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_sin_jugador(api_client, user):
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': 999,  # Jugador inexistente
+        'cantidad': 1
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_jugador_no_en_mercado(api_client, user, jugador):
+    jugador.en_mercado = False
+    jugador.save()
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': 1
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'jugador_id' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_mercado_sistema_cantidad_excesiva(api_client, user, jugador):
+    user.futcoins = 500  # No suficientes FutCoins para la compra
+    user.save()
+    url = reverse('comprar-sistema')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_id': jugador.id,
+        'cantidad': 10  # Requiere más FutCoins de las que tiene el usuario
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
+def test_poner_en_venta_usuario_cantidad_excesiva(api_client, user, jugador_usuario):
+    url = reverse('poner-en-venta-usuario')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_usuario': jugador_usuario.id,
+        'cantidad': 20,  # Más de lo que posee el usuario
+        'precio': 150
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_futcoins_insuficientes(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 100  # No suficientes FutCoins
+    comprador.save()
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': 2
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_misma_cantidad(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 2000  # Suficientes FutCoins
+    comprador.save()
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': venta_usuario.cantidad  # Comprar toda la cantidad disponible
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['success'] == 'Jugador comprado exitosamente.'
+    assert response.data['futcoins'] == 2000 - venta_usuario.precio * venta_usuario.cantidad
+
+
+@pytest.mark.django_db
+def test_eliminar_jugador_del_mercado(api_client, user, venta_usuario):
+    url = reverse('eliminar-venta-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=user)
+    response = api_client.delete(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['success'] == 'Venta eliminada exitosamente.'
+    venta_usuario.refresh_from_db()
+    assert not venta_usuario.isActive
+
+
+@pytest.mark.django_db
+def test_transacciones_usuario_list(api_client, user, venta_usuario):
+    Transaccion.objects.create(
+        comprador=user,
+        vendedor=venta_usuario.vendedor,
+        jugador=venta_usuario.jugador_usuario.jugador,
+        cantidad=1,
+        precio=200
+    )
+    url = reverse('transacciones-usuario')
+    api_client.force_authenticate(user=user)
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 4
+
+
+@pytest.mark.django_db
+def test_transacciones_admin_list(api_client, admin_user, venta_usuario):
+    Transaccion.objects.create(
+        comprador=admin_user,
+        vendedor=venta_usuario.vendedor,
+        jugador=venta_usuario.jugador_usuario.jugador,
+        cantidad=1,
+        precio=200
+    )
+    url = reverse('transacciones-admin')
+    api_client.force_authenticate(user=admin_user)
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 4
+
+
+@pytest.mark.django_db
+def test_poner_en_venta_usuario_cantidad_mayor_disponible(api_client, user, jugador_usuario):
+    jugador_usuario.cantidad = 2
+    jugador_usuario.save()
+    url = reverse('poner-en-venta-usuario')
+    api_client.force_authenticate(user=user)
+    data = {
+        'jugador_usuario': jugador_usuario.id,
+        'cantidad': 3,  # Mayor a la cantidad disponible
+        'precio': 150
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+
+
+@pytest.mark.django_db
+def test_comprar_jugador_usuario_no_disponible(api_client, user, venta_usuario, create_user):
+    comprador = create_user(
+        email='comprador@example.com',
+        username='comprador',
+        first_name='Comprador',
+        last_name='Example',
+        password='password123'
+    )
+    comprador.futcoins = 2000  # Suficientes FutCoins
+    comprador.save()
+    venta_usuario.jugador_usuario.delete()  # Eliminar el jugador para simular no disponibilidad
+    url = reverse('comprar-jugador-usuario', args=[venta_usuario.id])
+    api_client.force_authenticate(user=comprador)
+    data = {
+        'cantidad': 1
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_404_NOT_FOUND
