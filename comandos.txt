@@ -21,3 +21,6 @@ python manage.py dumpdata nombre_app --format json -o nombre_archivo.json para g
 python manage.py loaddata nombre_archivo para cargar los datos de un archivo
 python manage.py loaddata .\database\equipos.json
 python manage.py loaddata .\database\jugadores.json
+
+pytest para correr los tests
+
