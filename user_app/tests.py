@@ -166,8 +166,7 @@ def test_register_with_existing_email(api_client, user):
     url = reverse('register')
     data = {
         'username': 'anotheruser',
-        'email': user.email,  # Email already taken
-        'password': 'password123',
+        'email': user.email, 'password': 'password123',
         'password2': 'password123',
         'first_name': 'Another',
         'last_name': 'User',
@@ -185,7 +184,7 @@ def test_register_with_mismatched_passwords(api_client):
         'username': 'newuser',
         'email': 'newuser@example.com',
         'password': 'password123',
-        'password2': 'differentpassword',  # Passwords do not match
+        'password2': 'differentpassword',
         'first_name': 'New',
         'last_name': 'User',
         'phone_number': '1234567890',
@@ -271,8 +270,7 @@ def test_change_password_with_invalid_new_password(api_client, user):
     url = reverse('user-me-change-password')
     data = {
         'old_password': 'password123',
-        'new_password': 'short'  # Invalid new password
-    }
+        'new_password': 'short'}
     response = api_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'new_password' in response.data
@@ -317,3 +315,366 @@ def test_login_inactive_user(api_client, user):
     response = api_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'error_message' in response.data
+
+
+@pytest.mark.django_db
+def test_register_without_email(api_client):
+    url = reverse('register')
+    data = {
+        'username': 'newuser',
+        'password': 'password123',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_register_without_username(api_client):
+    url = reverse('register')
+    data = {
+        'email': 'newuser@example.com',
+        'password': 'password123',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_register_without_password(api_client):
+    url = reverse('register')
+    data = {
+        'username': 'newuser',
+        'email': 'newuser@example.com',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_login_without_email(api_client, user):
+    url = reverse('login')
+    data = {
+        'password': 'password123'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_login_without_password(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_user_profile_with_invalid_data(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me')
+    new_data = {
+        'email': 'invalidemail'
+    }
+    response = api_client.put(url, new_data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_logout_without_refresh_token(api_client):
+    url = reverse('logout')
+    response = api_client.post(url, {}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_check_admin_status_unauthenticated(api_client):
+    url = reverse('check-admin-status')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_change_password_with_mismatched_new_passwords(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me-change-password')
+    data = {
+        'old_password': 'password123',
+        'new_password': 'newpassword123',
+        'new_password2': 'differentpassword'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_user_profile_with_invalid_token(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + 'invalidtoken')
+    url = reverse('user-me')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_get_user_profile_as_admin(api_client, admin_user):
+    url = reverse('login')
+    data = {
+        'email': admin_user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['email'] == admin_user.email
+
+
+@pytest.mark.django_db
+def test_delete_user(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    delete_url = reverse('user-me')
+    response = api_client.delete(delete_url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@pytest.mark.django_db
+def test_register_without_email(api_client):
+    url = reverse('register')
+    data = {
+        'username': 'newuser',
+        'password': 'password123',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_register_without_username(api_client):
+    url = reverse('register')
+    data = {
+        'email': 'newuser@example.com',
+        'password': 'password123',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_register_without_password(api_client):
+    url = reverse('register')
+    data = {
+        'username': 'newuser',
+        'email': 'newuser@example.com',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_register_with_existing_email(api_client, user):
+    url = reverse('register')
+    data = {
+        'username': 'newuser',
+        'email': user.email,
+        'password': 'password123',
+        'password2': 'password123',
+        'first_name': 'New',
+        'last_name': 'User',
+        'phone_number': '1234567890',
+        'futcoins': 0.0
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_login_with_wrong_password(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'wrongpassword'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_user_profile_with_invalid_data(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me')
+    new_data = {
+        'email': 'invalidemail'
+    }
+    response = api_client.put(url, new_data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_user_profile_unauthenticated(api_client):
+    url = reverse('user-me')
+    new_data = {
+        'first_name': 'Updated',
+        'last_name': 'User',
+        'phone_number': '0987654321'
+    }
+    response = api_client.put(url, new_data, format='json')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_logout_without_refresh_token(api_client):
+    url = reverse('logout')
+    response = api_client.post(url, {}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_check_admin_status_unauthenticated(api_client):
+    url = reverse('check-admin-status')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_change_password_with_mismatched_new_passwords(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me-change-password')
+    data = {
+        'old_password': 'password123',
+        'new_password': 'newpassword123',
+        'new_password2': 'differentpassword'
+    }
+    response = api_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_user_profile_with_invalid_token(api_client):
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + 'invalidtoken')
+    url = reverse('user-me')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_get_user_profile_as_admin(api_client, admin_user):
+    url = reverse('login')
+    data = {
+        'email': admin_user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    url = reverse('user-me')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['email'] == admin_user.email
+
+
+@pytest.mark.django_db
+def test_delete_user(api_client, user):
+    url = reverse('login')
+    data = {
+        'email': user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    delete_url = reverse('user-me')
+    response = api_client.delete(delete_url)
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@pytest.mark.django_db
+def test_admin_can_view_all_users(api_client, admin_user, user):
+    url = reverse('login')
+    data = {
+        'email': admin_user.email,
+        'password': 'password123'
+    }
+    login_response = api_client.post(url, data, format='json')
+    access_token = login_response.data['token']['access']
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access_token)
+    list_users_url = reverse('mis-jugadores')
+    response = api_client.get(list_users_url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0
