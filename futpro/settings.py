@@ -13,6 +13,7 @@ import base64
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,8 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t95d(#=k-mg_#qlny#)79cwf@h13dqnuf_*+qgy258r6)4j!e#'
+load_dotenv(BASE_DIR / '.envs' / '.django')
+
+load_dotenv(BASE_DIR / '.envs' / '.postgres')
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 SECRET_KEY_FERNET = base64.urlsafe_b64encode(b'TudHC6lkR6IvK5bVSyGW7TAH8NyeKd3yCV6QscpQxg8=').decode()
 # SECURITY WARNING: don't run with debug turned on in production!
