@@ -9,6 +9,9 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - conexfutpro
+
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -20,10 +23,20 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - conexfutpro
+
   adminer:
     image: adminer
     ports:
       - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - conexfutpro
 
 volumes:
   pgdata:
+
+networks:
+  conexfutpro:
