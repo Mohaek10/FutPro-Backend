@@ -102,7 +102,7 @@ DATABASES = {
         'NAME': 'futpro',
         'USER': 'moha',
         'PASSWORD': 'admin',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
