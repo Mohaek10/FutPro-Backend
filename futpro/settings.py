@@ -25,9 +25,9 @@ SECRET_KEY = 'django-insecure-t95d(#=k-mg_#qlny#)79cwf@h13dqnuf_*+qgy258r6)4j!e#
 
 SECRET_KEY_FERNET = base64.urlsafe_b64encode(b'TudHC6lkR6IvK5bVSyGW7TAH8NyeKd3yCV6QscpQxg8=').decode()
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -99,11 +99,11 @@ ATOMIC_REQUESTS = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'futpro',
-        'USER': 'moha',
-        'PASSWORD': 'admin',
-        'HOST': 'db',
-        'PORT': '5432',
+        'NAME': os.getenv('POSTGRES_DB', 'futpro'),
+        'USER': os.getenv('POSTGRES_USER', 'moha'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'admin'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
 
