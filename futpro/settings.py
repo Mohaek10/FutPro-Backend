@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 SECRET_KEY_FERNET = base64.urlsafe_b64encode(b'TudHC6lkR6IvK5bVSyGW7TAH8NyeKd3yCV6QscpQxg8=').decode()
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
