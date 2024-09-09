@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia el resto de los archivos del proyecto
 COPY . /code/
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "myproject.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "futpro.wsgi:application"]
