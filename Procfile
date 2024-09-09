@@ -1,1 +1,1 @@
-web: gunicorn <futpro>.wsgi --log-file -
+web: gunicorn futpro.wsgi --log-file -
