@@ -1,16 +1,6 @@
 version: '3'
 
 services:
-  db:
-    image: postgres
-    env_file:
-      - ./.envs/.postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - conexfutpro
 
   web:
     build: .
@@ -26,14 +16,6 @@ services:
     networks:
       - conexfutpro
 
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    networks:
-      - conexfutpro
 
 volumes:
   pgdata:
